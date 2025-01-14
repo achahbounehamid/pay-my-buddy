@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping
+@RequestMapping("/api/users")
 public class UserController {
 
     @Autowired
@@ -19,7 +19,11 @@ public class UserController {
         return  ResponseEntity.ok(savedUser);
     }
     @GetMapping("/{email}")
-    public  User getUserByEmail(@PathVariable String email){
-        return  userService.findByEmail(email);
+    public ResponseEntity<User> getUserByEmail(@PathVariable String email) {
+        User user = userService.findByEmail(email);
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(user);
     }
 }

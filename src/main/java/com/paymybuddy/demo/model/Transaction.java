@@ -3,7 +3,8 @@ package com.paymybuddy.demo.model;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
-import java.security.Timestamp;
+import java.sql.Timestamp;
+
 
 @Entity
 

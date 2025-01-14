@@ -10,13 +10,13 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(name="username")
     private  String username;
 
-    @Column(nullable = false, unique = true)
+    @Column(name="email")
     private  String email;
 
-    @Column(nullable = false)
+    @Column(name="password")
     private String password;
 
     private BigDecimal balance;

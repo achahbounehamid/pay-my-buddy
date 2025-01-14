@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.security.Timestamp;
+import java.sql.Timestamp;
 
 @Service
 public class TransactionService {
@@ -15,7 +15,7 @@ public class TransactionService {
     @Autowired
     private TransactionRepository transactionRepository;
 
-    public Transaction createTransaction(User sende, User receiver, BigDecimal amount, String description){
+    public Transaction createTransaction(User sende, User receiver, BigDecimal amount, String description) {
         Transaction transaction = new Transaction();
         transaction.setSende(sende);
         transaction.setReceiver(receiver);
@@ -23,6 +23,6 @@ public class TransactionService {
         transaction.setDescription(description);
         transaction.setTransactionDate(new Timestamp(System.currentTimeMillis()));
 
-        return  transactionRepository.save(transaction);
+        return transactionRepository.save(transaction);
     }
 }
