@@ -1,46 +1,49 @@
 package com.paymybuddy.demo.model;
 
 import jakarta.persistence.*;
-
 import java.math.BigDecimal;
-import java.sql.Timestamp;
-
+import java.time.LocalDateTime;
 
 @Entity
-
+@Table(name = "transaction")
 public class Transaction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private  Long id;
+    private int id;
 
     @ManyToOne
     @JoinColumn(name = "sende_id", nullable = false)
-    private User sende;
+    private User sender;
 
+    @ManyToOne
     @JoinColumn(name = "receiver_id", nullable = false)
     private User receiver;
 
     @Column(nullable = false)
     private BigDecimal amount;
 
+    @Column(nullable = false)
     private String description;
 
-    private Timestamp transactionDate;
+    @Column(name = "transaction_date", nullable = false)
+    private LocalDateTime transactionDate = LocalDateTime.now();
 
-    public User getSende() {
-        return sende;
-    }
+    // Getters and Setters
 
-    public void setSende(User sende) {
-        this.sende = sende;
-    }
-
-    public Long getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(int id) {
         this.id = id;
+    }
+
+    public User getSender() {
+        return sender;
+    }
+
+    public void setSender(User sender) {
+        this.sender = sender;
     }
 
     public User getReceiver() {
@@ -67,11 +70,11 @@ public class Transaction {
         this.description = description;
     }
 
-    public Timestamp getTransactionDate() {
+    public LocalDateTime getTransactionDate() {
         return transactionDate;
     }
 
-    public void setTransactionDate(Timestamp transactionDate) {
+    public void setTransactionDate(LocalDateTime transactionDate) {
         this.transactionDate = transactionDate;
     }
 }
