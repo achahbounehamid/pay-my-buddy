@@ -18,7 +18,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/users/**").permitAll()  // Permet l'accès sans authentification
                 .anyRequest().authenticated()  // Exige l'authentification pour les autres requêtes
                 .and()
-                .csrf().disable();  // Désactive la protection CSRF si nécessaire
+                .csrf(csrf -> csrf.disable());   // Désactive la protection CSRF si nécessaire
 
         return http.build();
     }
