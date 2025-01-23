@@ -16,29 +16,15 @@ public class TransactionController {
     @Autowired
     private TransactionService transactionService;
 
-    @Autowired
-    private UserService userService;
-
-    @GetMapping("/sender/{email}")
-    public List<Transaction> getTransactionsBySender(@PathVariable String email) {
-        User sender = userService.findUserByEmail(email);
-        return transactionService.getTransactionsBySender(sender);
-    }
-
-    @GetMapping("/receiver/{email}")
-    public List<Transaction> getTransactionsByReceiver(@PathVariable String email) {
-        User receiver = userService.findUserByEmail(email);
-        return transactionService.getTransactionsByReceiver(receiver);
-    }
-
     @PostMapping
-    public Transaction sendMoney(
+    public Transaction createTransaction(
             @RequestParam String senderEmail,
             @RequestParam String receiverEmail,
-            @RequestParam BigDecimal amount,
-            @RequestParam String description) {
-        User sender = userService.findUserByEmail(senderEmail);
-        User receiver = userService.findUserByEmail(receiverEmail);
-        return transactionService.sendMoney(sender, receiver, amount, description);
+            @RequestParam double amount,
+            @RequestParam String description
+    ) {
+        User sender = transactionService.findUserByEmail(senderEmail);
+        User receiver = transactionService.findUserByEmail(receiverEmail);
+        return transactionService.createTransaction(sender, receiver, amount, description);
     }
 }
