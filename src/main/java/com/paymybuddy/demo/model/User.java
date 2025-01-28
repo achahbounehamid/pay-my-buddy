@@ -34,6 +34,10 @@ public class User {
     @Column(nullable = false)
     private BigDecimal balance = BigDecimal.ZERO;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "role")
+    private Set<String> roles = Set.of("ROLE_USER");
 
     // Relations
     @OneToMany(mappedBy = "sender")
@@ -82,6 +86,13 @@ public class User {
 
     public void setBalance(BigDecimal balance) {
         this.balance = balance;
+    }
+    public Set<String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<String> roles) {
+        this.roles = roles;
     }
 
     public Set<Transaction> getSentTransactions() {

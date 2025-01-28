@@ -24,6 +24,7 @@ public class LoginController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication failed");
         }
         // Log l'objet Authentication pour vérifier son contenu
+        System.out.println("Authentication principal: " + authentication.getPrincipal());
         System.out.println("Authentication: " + authentication);
         return jwtService.generateToken(authentication);
     }
