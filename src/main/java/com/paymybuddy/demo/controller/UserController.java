@@ -24,12 +24,17 @@ public class UserController {
     }
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@Valid @RequestBody User user) {
+        System.out.println("Register endpoint called with user: " + user.getEmail());
         try {
             userService.registerUser(user);
+            System.out.println("User registered successfully: " + user.getEmail());
             return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully!");
         } catch (Exception e) {
+            e.printStackTrace(); //  l'erreur complète
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
         }
+
+
     }
     @GetMapping
     public ResponseEntity<List<User>> getAllUsers(){

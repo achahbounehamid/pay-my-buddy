@@ -40,19 +40,27 @@ public class UserService {
         return  userRepository.findAll();
     }
     public void registerUser(User user) {
-        // Vérifier si l'utilisateur existe déjà
+        // confirmer l'appel à la méthode
+        System.out.println("registerUser method called for: " + user.getEmail());
+        // Vérification si l'utilisateur existe déjà
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new IllegalArgumentException("Email already in use!");
         }
 
         // Hash du mot de passe
+        // Log avant l'encodage du mot de passe
+        System.out.println("Encoding password for user: " + user.getEmail());
         String hashedPassword = passwordEncoder.encode(user.getPassword());
         user.setPassword(hashedPassword);
        // Rôle par défaut
+        System.out.println("Assigning default role (ROLE_USER) to user: " + user.getEmail());
         user.setRoles(Collections.singleton("ROLE_USER"));
 
         // Enregistrement
+        System.out.println("Saving user to database: " + user.getEmail());
         userRepository.save(user);
+
+        // Log pour confirmer l'enregistrement
         System.out.println("User registered: " + user.getEmail());
     }
 

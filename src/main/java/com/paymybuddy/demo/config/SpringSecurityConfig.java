@@ -35,7 +35,7 @@ public class SpringSecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login", "/register").permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasRole("ADMIN")
+//                        .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class) // Ajout du filtre JWT
                 .exceptionHandling(ex -> ex
@@ -57,13 +57,15 @@ public class SpringSecurityConfig {
 
     @Bean
     public UserDetailsService users() {
-        UserDetails user = User.builder().username("user")
-                .password(passwordEncoder()
-                        .encode("password")).roles("USER")
+        UserDetails user = User.builder()
+                .username("user")
+                .password(passwordEncoder().encode("password"))
+                .roles("USER")
                 .build();
         System.out.println("User created: " + user.getUsername());
         return new InMemoryUserDetailsManager(user);
     }
+
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {

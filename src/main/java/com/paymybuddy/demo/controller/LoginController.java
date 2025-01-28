@@ -20,12 +20,12 @@ public class LoginController {
 
     @PostMapping("/login")
     public String getToken(Authentication authentication) {
+        System.out.println("Login endpoint called");
         if (authentication == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication failed");
         }
-        // Log l'objet Authentication pour vérifier son contenu
-        System.out.println("Authentication principal: " + authentication.getPrincipal());
-        System.out.println("Authentication: " + authentication);
+        // Génération du token si l'authentification est réussie
+        System.out.println("Authentication successful for user: " + authentication.getName());
         return jwtService.generateToken(authentication);
     }
 

@@ -23,7 +23,7 @@ public class JWTService {
     }
 
     public String generateToken(Authentication authentication) {
-
+        System.out.println("Generating token for user: " + authentication.getName());
             Instant now = Instant.now();
 
         // Extraire les rôles (authorities) de l'utilisateur
