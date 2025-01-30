@@ -2,6 +2,10 @@ package com.paymybuddy.demo.service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+
+import com.paymybuddy.demo.config.SpringSecurityConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
@@ -13,7 +17,7 @@ import java.util.List;
 @Service
 public class JWTService {
 
-
+    private static final Logger logger = LoggerFactory.getLogger(JWTService.class);
     private JwtEncoder jwtEncoder;
     private final JwtDecoder jwtDecoder;
 
@@ -24,23 +28,24 @@ public class JWTService {
 
     public String generateToken(Authentication authentication) {
         System.out.println("Generating token for user: " + authentication.getName());
-            Instant now = Instant.now();
+        Instant now = Instant.now();
 
         // Extraire les rôles (authorities) de l'utilisateur
         String roles = authentication.getAuthorities().stream()
                 .map(grantedAuthority -> grantedAuthority.getAuthority())
                 .reduce((a, b) -> a + "," + b) // Concaténer les rôles avec une virgule
                 .orElse(""); // Si aucun rôle, chaîne vide
-            JwtClaimsSet claims = JwtClaimsSet.builder()
-                    .issuer("self")
-                    .issuedAt(now)
-                    .expiresAt(now.plus(1, ChronoUnit.DAYS))
-                    .subject(authentication.getName())
-                    .claim("roles", roles)
-                    .build();
-            JwtEncoderParameters jwtEncoderParameters = JwtEncoderParameters.from(JwsHeader.with(MacAlgorithm.HS256).build(), claims);
-            return this.jwtEncoder.encode(jwtEncoderParameters).getTokenValue();
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer("self")
+                .issuedAt(now)
+                .expiresAt(now.plus(1, ChronoUnit.DAYS))
+                .subject(authentication.getName())
+                .claim("roles", roles)
+                .build();
+        JwtEncoderParameters jwtEncoderParameters = JwtEncoderParameters.from(JwsHeader.with(MacAlgorithm.HS256).build(), claims);
+        return this.jwtEncoder.encode(jwtEncoderParameters).getTokenValue();
     }
+
     // Extraire le "subject" (par exemple, l'email) du token
     public String extractUsername(String token) {
         Jwt jwt = jwtDecoder.decode(token);
@@ -59,8 +64,13 @@ public class JWTService {
         try {
             Jwt jwt = jwtDecoder.decode(token);
             Instant expiration = jwt.getExpiresAt();
-            return expiration != null && expiration.isAfter(Instant.now());
+            logger.info("Token expiration date: " + expiration);
+
+            boolean isValid = expiration != null && expiration.isAfter(Instant.now());
+            logger.info("Token is valid: " + isValid);
+            return isValid;
         } catch (JwtException e) {
+            logger.info("Invalid token: " + e.getMessage());
             return false;
         }
     }

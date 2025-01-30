@@ -3,6 +3,8 @@ package com.paymybuddy.demo.controller;
 import com.paymybuddy.demo.model.User;
 import com.paymybuddy.demo.service.UserService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,20 +16,20 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
-
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
     @Autowired
     private UserService userService;
 
-    @GetMapping("/{email}")
-    public User getUserByEmail(@PathVariable String email) {
-        return userService.findUserByEmail(email);
+    @GetMapping("/{username}")
+    public User getUserByUsername(@PathVariable String username) {
+        return userService.findUserByUsername(username);
     }
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@Valid @RequestBody User user) {
-        System.out.println("Register endpoint called with user: " + user.getEmail());
+        logger.info("Register endpoint called with user: " + user.getEmail());
         try {
             userService.registerUser(user);
-            System.out.println("User registered successfully: " + user.getEmail());
+            logger.info("User registered successfully: " + user.getEmail());
             return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully!");
         } catch (Exception e) {
             e.printStackTrace(); //  l'erreur complète

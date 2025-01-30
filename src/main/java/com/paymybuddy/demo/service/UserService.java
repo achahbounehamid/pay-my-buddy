@@ -2,88 +2,105 @@ package com.paymybuddy.demo.service;
 
 import com.paymybuddy.demo.model.User;
 import com.paymybuddy.demo.repository.UserRepository;
-import com.paymybuddy.demo.repository.ConnectionsRepository; // Ajoutez l'import
+import com.paymybuddy.demo.repository.ConnectionsRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
-public class UserService {
+public class UserService implements UserDetailsService {
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     @Autowired
     private UserRepository userRepository;
-    @Autowired
-    private  PasswordEncoder passwordEncoder;
 
     @Autowired
-    private ConnectionsRepository connectionRepository; // Ajoutez cette ligne
+    private PasswordEncoder passwordEncoder;
 
-    public User findUserByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User with email " + email + " not found"));
+    @Autowired
+    private ConnectionsRepository connectionRepository;
+
+    //  Recherche par username
+    public User findUserByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User with username " + username + " not found"));
     }
 
-    public List<User> getConnectionsByEmail(String email) {
-        // Trouver l'utilisateur par son email
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+    public List<User> getConnectionsByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found with username: " + username));
 
-        // Trouver les connexions de cet utilisateur
-        List<User> connections = connectionRepository.findConnectionsByUserId(user.getId());
+        return connectionRepository.findConnectionsByUserId(user.getId());
+    }
 
-        return connections;
+    public List<User> findAllUsers() {
+        return userRepository.findAll();
     }
-    public  List<User> findAllUsers(){
-        return  userRepository.findAll();
-    }
+
     public void registerUser(User user) {
-        // confirmer l'appel à la méthode
-        System.out.println("registerUser method called for: " + user.getEmail());
-        // Vérification si l'utilisateur existe déjà
-        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("Email already in use!");
+        logger.info("registerUser method called for: " + user.getUsername());
+
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+            throw new IllegalArgumentException("Username already in use!");
         }
 
-        // Hash du mot de passe
-        // Log avant l'encodage du mot de passe
-        System.out.println("Encoding password for user: " + user.getEmail());
+        logger.info("Encoding password for user: " + user.getUsername());
         String hashedPassword = passwordEncoder.encode(user.getPassword());
         user.setPassword(hashedPassword);
-       // Rôle par défaut
-        System.out.println("Assigning default role (ROLE_USER) to user: " + user.getEmail());
+
+        logger.info("Assigning default role (ROLE_USER) to user: " + user.getUsername());
         user.setRoles(Collections.singleton("ROLE_USER"));
 
-        // Enregistrement
-        System.out.println("Saving user to database: " + user.getEmail());
+        logger.info("Saving user to database: " + user.getUsername());
         userRepository.save(user);
 
-        // Log pour confirmer l'enregistrement
-        System.out.println("User registered: " + user.getEmail());
+        logger.info("User registered: " + user.getUsername());
     }
 
-    public  User findUserById(int id){
-        return  userRepository.findById(id)
+    public User findUserById(int id) {
+        return userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + id));
     }
 
-    public void updateUser(int id, User updatedUser){
+    public void updateUser(int id, User updatedUser) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + id));
 
-        //Miss à jour des champs (pas de mot de passe à jour ici)
         existingUser.setUsername(updatedUser.getUsername());
         existingUser.setEmail(updatedUser.getEmail());
 
-        //Sauvegarde des modification
         userRepository.save(existingUser);
     }
+
     public void deleteUser(int id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with ID:" + id ));
+                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + id));
         userRepository.delete(user);
     }
 
+    //  Utilisation de username pour l'authentification
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        logger.info("Recherche de l'utilisateur avec le username : " + username);
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable : " + username));
+
+
+        return new org.springframework.security.core.userdetails.User(
+                user.getUsername(),
+                user.getPassword(),
+                Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"))
+        );
+    }
 }
