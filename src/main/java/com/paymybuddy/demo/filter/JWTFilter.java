@@ -19,7 +19,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-@Component
+
 public class JWTFilter extends OncePerRequestFilter {
     private static final Logger logger = LoggerFactory.getLogger(JWTFilter.class);
     private final JWTService jwtService;
@@ -30,21 +30,19 @@ public class JWTFilter extends OncePerRequestFilter {
         this.userDetailsService = userDetailsService;
     }
 
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getServletPath();
-        logger.info("Checking if path should be filtered: " + path);
-        return path.equals("/register") || path.equals("/login");
-    }
+//    @Override
+//    protected boolean shouldNotFilter(HttpServletRequest request) {
+//        String path = request.getServletPath();
+//        logger.info("Checking if path should be filtered: " + path);
+//        return path.equals("/register") || path.equals("/login");
+//    }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal( HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
         String requestPath = request.getServletPath();
-
-        // 🔹 Liste des endpoints publics à exclure du filtrage JWT
-        List<String> publicEndpoints = Arrays.asList("/api/users/login", "/api/users/register", "/api/users");
+        List<String> publicEndpoints = Arrays.asList("/api/users/login", "/api/users/register");
 
         if (publicEndpoints.contains(requestPath)) {
             logger.info("Skipping JWT filter for path: {}", requestPath);
@@ -52,37 +50,37 @@ public class JWTFilter extends OncePerRequestFilter {
             return;
         }
 
-        // Récupérer le header Authorization
         String authHeader = request.getHeader("Authorization");
 
-        logger.info("Authorization Header: {}", authHeader);
-
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            // Extraire le token après "Bearer "
             String token = authHeader.substring(7);
-            logger.info("Extracted Token: {}", token);
+            try {
+                if (jwtService.validateToken(token)) {
+                    String username = jwtService.extractUsername(token);
+                    List<String> roles = jwtService.extractRoles(token);
 
-            if (jwtService.validateToken(token)) {
-                // Extraire les informations du token
-                String username = jwtService.extractUsername(token);
-                List<String> roles = jwtService.extractRoles(token);
+                    logger.info("Token valid for user: {} with roles: {}", username, roles);
 
-                logger.info("Token valid for user: {} with roles: {}", username, roles);
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-                // Charger l'utilisateur à partir du UserDetailsService
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                    // Convertir les rôles en SimpleGrantedAuthority
+                    List<SimpleGrantedAuthority> authorities = roles.stream()
+                            .map(SimpleGrantedAuthority::new)
+                            .toList();
 
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            } else {
-                logger.info("Invalid Token: {}", token);
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                } else {
+                    logger.warn("Token invalide ou expiré !");
+                }
+            } catch (Exception e) {
+                logger.error("Erreur lors de la validation du token: ", e);
             }
         } else {
-            logger.info("No Authorization header or token provided for path: {}", request.getServletPath());
+            logger.info("Aucun token trouvé pour {}", request.getServletPath());
         }
 
-        // Passer au filtre suivant
         filterChain.doFilter(request, response);
     }
 }

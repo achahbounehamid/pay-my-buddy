@@ -2,23 +2,23 @@ package com.paymybuddy.demo.service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-
-import com.paymybuddy.demo.config.SpringSecurityConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.jwt.*;
-import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
-import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.*;
+import org.springframework.stereotype.Service;
 
 @Service
 public class JWTService {
 
     private static final Logger logger = LoggerFactory.getLogger(JWTService.class);
-    private JwtEncoder jwtEncoder;
+    private final JwtEncoder jwtEncoder;
     private final JwtDecoder jwtDecoder;
 
     public JWTService(JwtEncoder jwtEncoder, JwtDecoder jwtDecoder) {
@@ -26,53 +26,48 @@ public class JWTService {
         this.jwtDecoder = jwtDecoder;
     }
 
+    //  Générer un token
     public String generateToken(Authentication authentication) {
-        System.out.println("Generating token for user: " + authentication.getName());
         Instant now = Instant.now();
 
-        // Extraire les rôles (authorities) de l'utilisateur
         String roles = authentication.getAuthorities().stream()
-                .map(grantedAuthority -> grantedAuthority.getAuthority())
-                .reduce((a, b) -> a + "," + b) // Concaténer les rôles avec une virgule
-                .orElse(""); // Si aucun rôle, chaîne vide
+                .map(GrantedAuthority::getAuthority)
+                .reduce((a, b) -> a + "," + b)
+                .orElse("");
+
         JwtClaimsSet claims = JwtClaimsSet.builder()
-                .issuer("self")
+                .issuer("paymybuddy")
                 .issuedAt(now)
                 .expiresAt(now.plus(1, ChronoUnit.DAYS))
                 .subject(authentication.getName())
                 .claim("roles", roles)
                 .build();
-        JwtEncoderParameters jwtEncoderParameters = JwtEncoderParameters.from(JwsHeader.with(MacAlgorithm.HS256).build(), claims);
-        return this.jwtEncoder.encode(jwtEncoderParameters).getTokenValue();
+
+        return jwtEncoder.encode(JwtEncoderParameters.from(JwsHeader.with(MacAlgorithm.HS256).build(), claims)).getTokenValue();
     }
 
-    // Extraire le "subject" (par exemple, l'email) du token
-    public String extractUsername(String token) {
-        Jwt jwt = jwtDecoder.decode(token);
-        return jwt.getClaim("sub"); // Récupérer le champ "subject"
-    }
-
-    // Extraire les rôles du token
-    public List<String> extractRoles(String token) {
-        Jwt jwt = jwtDecoder.decode(token);
-        String roles = jwt.getClaim("roles");
-        return roles != null ? Arrays.asList(roles.split(",")) : Collections.emptyList();
-    }
-
-    // Valider si le token est valide ou expiré
+    // Valider un token
     public boolean validateToken(String token) {
         try {
             Jwt jwt = jwtDecoder.decode(token);
-            Instant expiration = jwt.getExpiresAt();
-            logger.info("Token expiration date: " + expiration);
+            return jwt.getExpiresAt().isAfter(Instant.now());
 
-            boolean isValid = expiration != null && expiration.isAfter(Instant.now());
-            logger.info("Token is valid: " + isValid);
-            return isValid;
-        } catch (JwtException e) {
-            logger.info("Invalid token: " + e.getMessage());
+        } catch (Exception e) {
+            logger.error("Invalid token: {}", e.getMessage());
             return false;
         }
     }
 
+    //  Extraire l'username du token
+    public String extractUsername(String token) {
+        return jwtDecoder.decode(token).getSubject();
+    }
+
+    //  Extraire les rôles du token
+    public List<String> extractRoles(String token) {
+        String roles = jwtDecoder.decode(token).getClaim("roles");
+        return roles != null ? Arrays.asList(roles.split(",")) : Collections.emptyList();
+    }
 }
+
+

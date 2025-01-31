@@ -2,7 +2,6 @@ package com.paymybuddy.demo.service;
 
 import com.paymybuddy.demo.model.User;
 import com.paymybuddy.demo.repository.UserRepository;
-import com.paymybuddy.demo.repository.ConnectionsRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+
 
 @Service
 public class UserService implements UserDetailsService {
@@ -27,20 +26,9 @@ public class UserService implements UserDetailsService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private ConnectionsRepository connectionRepository;
-
-    //  Recherche par username
     public User findUserByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User with username " + username + " not found"));
-    }
-
-    public List<User> getConnectionsByUsername(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found with username: " + username));
-
-        return connectionRepository.findConnectionsByUserId(user.getId());
     }
 
     public List<User> findAllUsers() {
@@ -54,14 +42,8 @@ public class UserService implements UserDetailsService {
             throw new IllegalArgumentException("Username already in use!");
         }
 
-        logger.info("Encoding password for user: " + user.getUsername());
         String hashedPassword = passwordEncoder.encode(user.getPassword());
         user.setPassword(hashedPassword);
-
-        logger.info("Assigning default role (ROLE_USER) to user: " + user.getUsername());
-        user.setRoles(Collections.singleton("ROLE_USER"));
-
-        logger.info("Saving user to database: " + user.getUsername());
         userRepository.save(user);
 
         logger.info("User registered: " + user.getUsername());
@@ -88,14 +70,10 @@ public class UserService implements UserDetailsService {
         userRepository.delete(user);
     }
 
-    //  Utilisation de username pour l'authentification
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        logger.info("Recherche de l'utilisateur avec le username : " + username);
-
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable : " + username));
-
 
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
@@ -104,3 +82,4 @@ public class UserService implements UserDetailsService {
         );
     }
 }
+

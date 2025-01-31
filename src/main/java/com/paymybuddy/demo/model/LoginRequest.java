@@ -1,7 +1,5 @@
 package com.paymybuddy.demo.model;
 
-import jakarta.persistence.Entity;
-
 
 public class LoginRequest {
     private String username;
