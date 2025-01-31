@@ -50,13 +50,23 @@ public class JWTService {
     public boolean validateToken(String token) {
         try {
             Jwt jwt = jwtDecoder.decode(token);
-            return jwt.getExpiresAt().isAfter(Instant.now());
+            Instant expiration = jwt.getExpiresAt();
+            logger.info(" Token expiration : " + expiration);
 
+            if (expiration == null) {
+                logger.warn("Le token n'a pas de date d'expiration !");
+                return false;
+            }
+
+            boolean isValid = expiration.isAfter(Instant.now());
+            logger.info(" Token valide : " + isValid);
+            return isValid;
         } catch (Exception e) {
-            logger.error("Invalid token: {}", e.getMessage());
+            logger.error(" Erreur lors de la validation du token : " + e.getMessage());
             return false;
         }
     }
+
 
     //  Extraire l'username du token
     public String extractUsername(String token) {

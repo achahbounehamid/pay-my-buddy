@@ -19,7 +19,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-
+@Component
 public class JWTFilter extends OncePerRequestFilter {
     private static final Logger logger = LoggerFactory.getLogger(JWTFilter.class);
     private final JWTService jwtService;
@@ -38,52 +38,45 @@ public class JWTFilter extends OncePerRequestFilter {
 //    }
 
     @Override
-    protected void doFilterInternal( HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
         String requestPath = request.getServletPath();
-        List<String> publicEndpoints = Arrays.asList("/api/users/login", "/api/users/register");
+        logger.info(" Requête interceptée : " + requestPath);
 
+        List<String> publicEndpoints = Arrays.asList("/api/users/login", "/api/users/register");
         if (publicEndpoints.contains(requestPath)) {
-            logger.info("Skipping JWT filter for path: {}", requestPath);
+            logger.info("Endpoint public, pas de vérification du token : " + requestPath);
             filterChain.doFilter(request, response);
             return;
         }
 
         String authHeader = request.getHeader("Authorization");
-
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
-            try {
-                if (jwtService.validateToken(token)) {
-                    String username = jwtService.extractUsername(token);
-                    List<String> roles = jwtService.extractRoles(token);
+            logger.info("Token extrait : " + token);
 
-                    logger.info("Token valid for user: {} with roles: {}", username, roles);
+            if (jwtService.validateToken(token)) {
+                String username = jwtService.extractUsername(token);
+                List<String> roles = jwtService.extractRoles(token);
+                logger.info("Token valide pour l'utilisateur : " + username + " avec rôles : " + roles);
 
-                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                UsernamePasswordAuthenticationToken authToken =
+                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
-                    // Convertir les rôles en SimpleGrantedAuthority
-                    List<SimpleGrantedAuthority> authorities = roles.stream()
-                            .map(SimpleGrantedAuthority::new)
-                            .toList();
-
-                    UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-                } else {
-                    logger.warn("Token invalide ou expiré !");
-                }
-            } catch (Exception e) {
-                logger.error("Erreur lors de la validation du token: ", e);
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+            } else {
+                logger.warn(" Token invalide ou expiré !");
             }
         } else {
-            logger.info("Aucun token trouvé pour {}", request.getServletPath());
+            logger.warn(" Aucun token JWT fourni !");
         }
 
         filterChain.doFilter(request, response);
     }
 }
+
 
 
 
