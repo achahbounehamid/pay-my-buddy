@@ -21,7 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Component
-public class JWTFilter extends OncePerRequestFilter {
+public class   JWTFilter extends OncePerRequestFilter {
     private static final Logger logger = LoggerFactory.getLogger(JWTFilter.class);
     private final JWTService jwtService;
     private final UserDetailsService userDetailsService;

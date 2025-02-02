@@ -57,6 +57,7 @@ public class UserController {
         return  ResponseEntity.ok(user);
     }
     // Modifier un utilisateur par ID (réservé aux ADMIN)
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/id/{id}")
     public  ResponseEntity<String> updateUser(@PathVariable int id, @Valid @RequestBody User updateUser){
         try {
@@ -67,7 +68,7 @@ public class UserController {
         }
     }
     // Supprimer un utilisateur par ID (réservé aux ADMIN)
-    @PreAuthorize("hasRole('ASMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/id/{id}")
     public  ResponseEntity<String> deleteUser(@PathVariable int id){
         try{

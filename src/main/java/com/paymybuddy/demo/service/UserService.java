@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
@@ -70,18 +71,27 @@ public class UserService implements UserDetailsService {
         userRepository.delete(user);
     }
     //  Mettre à jour l'utilisateur connecté
+//    @Transactional
     public void updateUserByUsername(String username, User updatedUser) {
         User existingUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
-
+// Mettre à jour les champs modifiables
         if (updatedUser.getEmail() != null) {
             existingUser.setEmail(updatedUser.getEmail());
         }
         if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
             existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
         }
-
+        if (updatedUser.getBalance() != null) {
+            logger.info("Mise à jour de la balance: " + updatedUser.getBalance());
+            existingUser.setBalance(updatedUser.getBalance());
+        }
+        if (updatedUser.getRoles() != null && !updatedUser.getRoles().isEmpty()) {
+            existingUser.setRoles(updatedUser.getRoles());
+        }
+//  Sauvegarder les modifications
         userRepository.save(existingUser);
+        logger.info("User updated successfully: " + existingUser.getUsername());
     }
 
     // Supprimer l'utilisateur connecté
