@@ -25,16 +25,16 @@ public class UserService implements UserDetailsService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-
+    //  Récupérer un utilisateur par username
     public User findUserByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User with username " + username + " not found"));
     }
-
+    // Récupérer tous les utilisateurs (pour ADMIN)
     public List<User> findAllUsers() {
         return userRepository.findAll();
     }
-
+    //  Inscription d'un utilisateur
     public void registerUser(User user) {
         logger.info("registerUser method called for: " + user.getUsername());
 
@@ -48,12 +48,12 @@ public class UserService implements UserDetailsService {
 
         logger.info("User registered: " + user.getUsername());
     }
-
+    //  Récupérer un utilisateur par ID
     public User findUserById(int id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + id));
     }
-
+    //  Mettre à jour un utilisateur par ID
     public void updateUser(int id, User updatedUser) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + id));
@@ -63,13 +63,35 @@ public class UserService implements UserDetailsService {
 
         userRepository.save(existingUser);
     }
-
+    //  Supprimer un utilisateur par ID
     public void deleteUser(int id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + id));
         userRepository.delete(user);
     }
+    //  Mettre à jour l'utilisateur connecté
+    public void updateUserByUsername(String username, User updatedUser) {
+        User existingUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
 
+        if (updatedUser.getEmail() != null) {
+            existingUser.setEmail(updatedUser.getEmail());
+        }
+        if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
+            existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
+        }
+
+        userRepository.save(existingUser);
+    }
+
+    // Supprimer l'utilisateur connecté
+    public void deleteUserByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
+
+        userRepository.delete(user);
+    }
+    //  Chargement d'un utilisateur pour Spring Security
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(username)
@@ -81,5 +103,6 @@ public class UserService implements UserDetailsService {
                 Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"))
         );
     }
+
 }
 

@@ -19,6 +19,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+
 @Component
 public class JWTFilter extends OncePerRequestFilter {
     private static final Logger logger = LoggerFactory.getLogger(JWTFilter.class);
@@ -29,13 +30,6 @@ public class JWTFilter extends OncePerRequestFilter {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
     }
-
-//    @Override
-//    protected boolean shouldNotFilter(HttpServletRequest request) {
-//        String path = request.getServletPath();
-//        logger.info("Checking if path should be filtered: " + path);
-//        return path.equals("/register") || path.equals("/login");
-//    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)

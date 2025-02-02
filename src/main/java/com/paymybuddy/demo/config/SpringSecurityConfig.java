@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
@@ -47,9 +48,11 @@ public class SpringSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users/login", "/api/users/register").permitAll() // 🔥 Routes publiques
-                        .anyRequest().authenticated()) // 🔐 Routes sécurisées
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class) // 🔥 Ajoute le filtre JWT
+                        .requestMatchers("/api/users/login", "/api/users/register").permitAll() //  Routes publiques
+                        .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()  // Seul l'utilisateur connecté peut voir ses infos
+                        .requestMatchers(HttpMethod.PUT, "/api/users/me").authenticated()  // Seul l'utilisateur connecté peut modifier ses infos
+                        .anyRequest().authenticated()) //  Routes sécurisées
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class) // Ajoute le filtre JWT
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {
                             logger.warn("Authentication failed: " + authException.getMessage());
