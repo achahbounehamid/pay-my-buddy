@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -48,6 +49,14 @@ public class User {
     @JsonIgnore
     private Set<Transaction> receivedTransactions;
 
+    @ManyToMany
+    @JoinTable(
+            name = "connections",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "connection_id")
+    )
+    private Set<User> connections = new HashSet<>();
+
     public int getId() {
         return id;
     }
@@ -87,6 +96,7 @@ public class User {
     public void setBalance(BigDecimal balance) {
         this.balance = balance;
     }
+
     public Set<String> getRoles() {
         return roles;
     }
@@ -109,5 +119,13 @@ public class User {
 
     public void setReceivedTransactions(Set<Transaction> receivedTransactions) {
         this.receivedTransactions = receivedTransactions;
+    }
+
+    public Set<User> getConnections() {
+        return connections;
+    }
+
+    public void setConnections(Set<User> connections) {
+        this.connections = connections;
     }
 }

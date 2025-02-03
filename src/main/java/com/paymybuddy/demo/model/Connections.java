@@ -4,25 +4,39 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "connections")
+@IdClass(ConnectionId.class) // Indique l'utilisation de la clé composite
 public class Connections {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    @Column(name = "user_id")
+    private int userId;
+
+    @Id
+    @Column(name = "connection_id")
+    private int connectionId;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "connection_id", nullable = false)
-    private User connection;
+    @JoinColumn(name = "connection_id", insertable = false, updatable = false)
+    private User friend;
 
-    public int getId() {
-        return id;
+    public int getUserId() {
+        return userId;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
+
+    public int getConnectionId() {
+        return connectionId;
+    }
+
+    public void setConnectionId(int connectionId) {
+        this.connectionId = connectionId;
     }
 
     public User getUser() {
@@ -33,11 +47,11 @@ public class Connections {
         this.user = user;
     }
 
-    public User getConnection() {
-        return connection;
+    public User getFriend() {
+        return friend;
     }
 
-    public void setConnection(User connection) {
-        this.connection = connection;
+    public void setFriend(User friend) {
+        this.friend = friend;
     }
 }
