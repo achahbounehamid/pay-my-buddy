@@ -21,7 +21,10 @@ public class ConnectionService {
         this.userRepository = userRepository;
         this.connectionRepository = connectionRepository;
     }
-
+    // Vérifier si les deux utilisateurs existent
+    private boolean checkIfUsersExist(User user, User friend) {
+        return user != null && friend != null;
+    }
     // Ajouter un ami
     public void addFriend(String username, String friendEmail) {
         User user = userRepository.findByUsername(username)
