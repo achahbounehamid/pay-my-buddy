@@ -38,18 +38,25 @@ public class ConnectionService {
             throw new IllegalArgumentException("Already connected with this friend.");
         }
 
-        // Créer une connexion
-        Connections connection = new Connections();
-        connection.setUser(user);
-        connection.setFriend(friend);
-        connectionRepository.save(connection);
+        // Créer une connexion bidirectionnelle
+        Connections connection1 = new Connections();
+        connection1.setUser(user);
+        connection1.setFriend(friend);
+        connectionRepository.save(connection1);
+
+        // Créer l'autre connexion bidirectionnelle (de friend vers user)
+        Connections connection2 = new Connections();
+        connection2.setUser(friend);
+        connection2.setFriend(user);
+        connectionRepository.save(connection2);
     }
 
     // Récupérer les amis d'un utilisateur
     public List<User> getFriends(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found."));
-
+        // Forcer l'initialisation des connexions
+        user.getConnections().size();
         return new ArrayList<>(user.getConnections());
     }
 
@@ -60,11 +67,16 @@ public class ConnectionService {
 
         User friend = userRepository.findByEmail(friendEmail)
                 .orElseThrow(() -> new IllegalArgumentException("Friend not found: " + friendEmail));
-
-        Connections connection = connectionRepository.findByUserAndFriend(user, friend)
+// Trouver la connexion de user à friend
+        Connections connection1 = connectionRepository.findByUserAndFriend(user, friend)
                 .orElseThrow(() -> new IllegalArgumentException("Friend not found in user's connections."));
 
-        connectionRepository.delete(connection);
+        Connections connection2 = connectionRepository.findByUserAndFriend(friend, user)
+                .orElseThrow(() -> new IllegalArgumentException("Friend not found in friend's connections."));
+
+        // Supprimer les deux connexions
+        connectionRepository.delete(connection1);
+        connectionRepository.delete(connection2);
     }
 }
 

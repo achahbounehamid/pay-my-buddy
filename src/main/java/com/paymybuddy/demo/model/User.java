@@ -49,13 +49,14 @@ public class User {
     @JsonIgnore
     private Set<Transaction> receivedTransactions;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "connections",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "connection_id")
     )
-    private Set<User> connections = new HashSet<>();
+//    private Set<User> connections = new HashSet<>();
+    private Set<User> connections;
 
     public int getId() {
         return id;

@@ -11,7 +11,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
@@ -75,6 +74,7 @@ public class UserService implements UserDetailsService {
     public void updateUserByUsername(String username, User updatedUser) {
         User existingUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
+        logger.info("Mise à jour de l'utilisateur : " + username);
 // Mettre à jour les champs modifiables
         if (updatedUser.getEmail() != null) {
             existingUser.setEmail(updatedUser.getEmail());
@@ -104,9 +104,13 @@ public class UserService implements UserDetailsService {
     //  Chargement d'un utilisateur pour Spring Security
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        logger.info("Chargement des détails de l'utilisateur pour : " + username);
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable : " + username));
+        logger.info("Utilisateur trouvé : " + user.getUsername());
 
+
+        // Retourner l'utilisateur avec ses rôles
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
