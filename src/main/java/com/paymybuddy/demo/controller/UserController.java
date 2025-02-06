@@ -1,4 +1,5 @@
 package com.paymybuddy.demo.controller;
+import org.springframework.ui.Model;
 
 import com.paymybuddy.demo.model.User;
 import com.paymybuddy.demo.service.UserService;
@@ -81,10 +82,16 @@ public class UserController {
     // Récupérer les infos de l'utilisateur connecté
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/me")
-    public ResponseEntity<User> getCurrentUser(Authentication authentication){
-        String username = authentication.getName();
-        return  ResponseEntity.ok(userService.findUserByUsername(username));
-
+//    public ResponseEntity<User> getCurrentUser(Authentication authentication){
+//        String username = authentication.getName();
+//        return  ResponseEntity.ok(userService.findUserByUsername(username));
+//
+//    }
+    public String getCurrentUser(Authentication authentication, Model model) {
+        String username = authentication.getName(); // Récupérer le nom d'utilisateur de l'utilisateur connecté
+        User user = userService.findUserByUsername(username); // Récupérer l'utilisateur par son nom
+        model.addAttribute("user", user); // Ajouter l'objet User au modèle
+        return "profile";  // Retourne le nom de la vue (profile.html)
     }
     //  Modifier son propre compte
     @PreAuthorize("isAuthenticated()")
@@ -94,6 +101,7 @@ public class UserController {
         logger.info("Mise à jour des infos de l'utilisateur: {}", username);
         try {
             userService.updateUserByUsername(username, updateUser);
+
             return ResponseEntity.ok("User updated successfully!");
         } catch (Exception e) {
             logger.error("Erreur lors de la mise à jour : {}", e.getMessage());
