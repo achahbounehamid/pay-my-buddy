@@ -51,7 +51,7 @@ public class SpringSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/users/me").authenticated()
                         .requestMatchers(HttpMethod.POST,  "/api/connections/add").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/connections").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/connections/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/connections/remove").authenticated()
                         .anyRequest().authenticated()) //  Routes sécurisées
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class) // Ajoute le filtre JWT

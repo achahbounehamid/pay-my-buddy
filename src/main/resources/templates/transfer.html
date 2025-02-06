@@ -1,21 +1,81 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="fr">
 <head>
-    <title>Transfert d'argent</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page de Transfert</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-<h1>Transfert d'argent</h1>
-<form action="/api/transactions" method="post">
-    <label for="receiver">Destinataire :</label>
-    <input type="text" id="receiver" name="receiver" placeholder="Nom ou email" required>
-    <br>
-    <label for="amount">Montant :</label>
-    <input type="number" id="amount" name="amount" step="0.01" required>
-    <br>
-    <label for="description">Description :</label>
-    <textarea id="description" name="description"></textarea>
-    <br>
-    <button type="submit">Envoyer</button>
-</form>
+<body class="bg-light">
+<div class="container py-5">
+    <!-- Header with the logo and navigation -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <button class="btn btn-warning">Pay My Buddy</button>
+        <div>
+            <a href="/transfer" class="btn btn-link active">Transférer</a>
+            <a href="/profile" class="btn btn-link">Profil</a>
+            <a href="/add-relationship" class="btn btn-link">Ajouter relation</a>
+            <a href="/logout" class="btn btn-link">Se déconnecter</a>
+        </div>
+    </div>
+
+    <!-- Transfer Form -->
+    <div class="card p-4 mb-4">
+        <h4 class="text-center mb-4">Transfert</h4>
+        <form>
+            <div class="mb-3">
+                <label for="relationSelect" class="form-label">Sélectionner une relation</label>
+                <select class="form-select" id="relationSelect" required>
+                    <option selected disabled>Choisir...</option>
+                    <option value="1">Laure-Anne</option>
+                    <option value="2">Clara</option>
+                    <option value="3">Luc</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="descriptionInput" class="form-label">Description</label>
+                <input type="text" class="form-control" id="descriptionInput" placeholder="Description" required>
+            </div>
+            <div class="mb-3">
+                <label for="amountInput" class="form-label">Montant</label>
+                <input type="number" class="form-control" id="amountInput" placeholder="0€" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Payer</button>
+        </form>
+    </div>
+
+    <!-- Transactions Table -->
+    <div class="card p-4">
+        <h4 class="text-center mb-4">Mes Transactions</h4>
+        <table class="table">
+            <thead>
+            <tr>
+                <th scope="col">Relations</th>
+                <th scope="col">Description</th>
+                <th scope="col">Montant</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>Laure-Anne</td>
+                <td>Restaurant</td>
+                <td>10€</td>
+            </tr>
+            <tr>
+                <td>Clara</td>
+                <td>Voyage</td>
+                <td>25€</td>
+            </tr>
+            <tr>
+                <td>Luc</td>
+                <td>Billets de cinéma</td>
+                <td>8€</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

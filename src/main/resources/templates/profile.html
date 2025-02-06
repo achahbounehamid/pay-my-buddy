@@ -1,18 +1,45 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="fr">
 <head>
-  <title>Profil</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page de Profil</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-<h1>Profil</h1>
-<form action="/api/users/update" method="post">
-  <label for="username">Nom d'utilisateur :</label>
-  <input type="text" id="username" name="username" value="[[${user.username}]]" required>
-  <br>
-  <label for="email">Email :</label>
-  <input type="email" id="email" name="email" value="[[${user.email}]]" required>
-  <br>
-  <button type="submit">Mettre à jour</button>
-</form>
+<body class="bg-light">
+<div class="container py-5">
+  <!-- Header with the logo and navigation -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <button class="btn btn-warning">Pay My Buddy</button>
+    <div>
+      <a href="/transfer" class="btn btn-link">Transférer</a>
+      <a href="/profile" class="btn btn-link active">Profil</a>
+      <a href="/add-relationship" class="btn btn-link">Ajouter relation</a>
+      <a href="/logout" class="btn btn-link">Se déconnecter</a>
+    </div>
+  </div>
+
+  <!-- Profile Section -->
+  <div class="card p-4">
+    <h4 class="text-center mb-4">Profil</h4>
+    <div class="mb-3 d-flex justify-content-between align-items-center">
+      <strong>Username</strong>
+      <span>@username</span>
+      <button class="btn btn-warning">Modifier</button>
+    </div>
+    <div class="mb-3 d-flex justify-content-between align-items-center">
+      <strong>Mail</strong>
+      <span>nom@domain.com</span>
+      <button class="btn btn-warning">Modifier</button>
+    </div>
+    <div class="mb-3 d-flex justify-content-between align-items-center">
+      <strong>Mot de passe</strong>
+      <span>mot de passe</span>
+      <button class="btn btn-warning">Modifier</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
