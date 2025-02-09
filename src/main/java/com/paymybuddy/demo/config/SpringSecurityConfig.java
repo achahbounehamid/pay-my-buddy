@@ -47,13 +47,8 @@ public class SpringSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users/login", "/api/users/register").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/users/me").authenticated()
-                        .requestMatchers(HttpMethod.POST,  "/api/connections/add").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/connections/**").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/api/connections/remove").authenticated()
-                        .anyRequest().authenticated()) //  Routes sécurisées
+                        .requestMatchers("/api/users/**").permitAll()
+                        .requestMatchers( "/api/**").authenticated())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class) // Ajoute le filtre JWT
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {

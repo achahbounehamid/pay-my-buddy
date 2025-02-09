@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,18 +31,19 @@ public class TransactionService {
         User receiver = userRepository.findById(receiverId)
                 .orElseThrow(() -> new IllegalArgumentException("Receiver not found"));
 
-        logger.info("Sender's connections: " + sender.getConnections());
-        // Vérifier si l'expéditeur et le destinataire sont connectés
-        if (!sender.getConnections().contains(receiver)) {
-            throw new IllegalArgumentException("Sender and receiver must be connected");
-        }
-        // Initialisation explicite de la collection connections
-        sender.getConnections().size();
+        //  l'ID de l'expéditeur et du destinataire
+        logger.info("Sender ID: " + senderId + " Receiver ID: " + receiverId);
+
+        //  les connexions de l'expéditeur
+        logger.info("Sender's Connections: " + sender.getConnections());
 
         // Vérifier si l'expéditeur et le destinataire sont connectés
         if (!sender.getConnections().contains(receiver)) {
             throw new IllegalArgumentException("Sender and receiver must be connected");
         }
+
+        // Initialisation explicite de la collection connections
+        sender.getConnections().size();
 
         // Créer et sauvegarder la transaction
         Transaction transaction = new Transaction();
@@ -65,5 +65,9 @@ public class TransactionService {
     // Récupérer les transactions reçues par un utilisateur
     public List<Transaction> getReceivedTransactions(int userId) {
         return transactionRepository.findByReceiverId(userId);
+    }
+    // Supprimer une transaction
+    public void deleteTransaction(int transactionId) {
+        transactionRepository.deleteById(transactionId);
     }
 }

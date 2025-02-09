@@ -22,7 +22,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.Collections;
 
 @RestController
-@Controller
 @RequestMapping("/api/users")
 public class LoginController {
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);

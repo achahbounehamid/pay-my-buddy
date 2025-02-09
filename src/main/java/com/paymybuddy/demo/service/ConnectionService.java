@@ -37,13 +37,11 @@ public class ConnectionService {
         if (connectionRepository.findByUserAndFriend(user, friend).isPresent()) {
             throw new IllegalArgumentException("Already connected with this friend.");
         }
-
         // Créer une connexion bidirectionnelle
         Connections connection1 = new Connections();
         connection1.setUser(user);
         connection1.setFriend(friend);
         connectionRepository.save(connection1);
-
         // Créer l'autre connexion bidirectionnelle (de friend vers user)
         Connections connection2 = new Connections();
         connection2.setUser(friend);

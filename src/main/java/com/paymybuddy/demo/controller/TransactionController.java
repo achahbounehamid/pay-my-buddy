@@ -44,6 +44,10 @@ public class TransactionController {
     public List<Transaction> getReceivedTransactions(@RequestParam int userId) {
         return transactionService.getReceivedTransactions(userId);
     }
-
+    @DeleteMapping("/delete")
+    public ResponseEntity<String> deleteTransaction(@RequestParam int transactionId) {
+        transactionService.deleteTransaction(transactionId);
+        return ResponseEntity.ok("Transaction deleted successfully!");
+    }
 
 }

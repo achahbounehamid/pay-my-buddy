@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface TransactionRepository extends JpaRepository<Transaction, Long> {
+public interface TransactionRepository extends JpaRepository<Transaction, Integer> {
 
     // Trouver les transactions envoyées par un utilisateur (par ID d'expéditeur)
     List<Transaction> findBySenderId(int senderId);
