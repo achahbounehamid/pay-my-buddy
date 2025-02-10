@@ -36,6 +36,7 @@ public class ConnectionService {
         // Vérifier si la connexion existe déjà
         if (connectionRepository.findByUserAndFriend(user, friend).isPresent()) {
             throw new IllegalArgumentException("Already connected with this friend.");
+
         }
         // Créer une connexion bidirectionnelle
         Connections connection1 = new Connections();
@@ -47,6 +48,8 @@ public class ConnectionService {
         connection2.setUser(friend);
         connection2.setFriend(user);
         connectionRepository.save(connection2);
+
+
     }
 
     // Récupérer les amis d'un utilisateur

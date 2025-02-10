@@ -1,5 +1,6 @@
 package com.paymybuddy.demo.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -13,8 +14,10 @@ public class Transaction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
     @ManyToOne
     @JoinColumn(name = "sende_id", referencedColumnName = "id")
+    @JsonIgnore
     private User sender;
 
     @ManyToOne

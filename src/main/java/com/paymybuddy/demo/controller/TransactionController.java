@@ -44,6 +44,11 @@ public class TransactionController {
     public List<Transaction> getReceivedTransactions(@RequestParam int userId) {
         return transactionService.getReceivedTransactions(userId);
     }
+    // Endpoint pour récupérer les transactions entre un expéditeur et un destinataire
+    @GetMapping("/between")
+    public List<Transaction> getTransactionsBetweenUsers(@RequestParam int senderId, @RequestParam int receiverId) {
+        return transactionService.getTransactionsBetweenUsers(senderId, receiverId);
+    }
     @DeleteMapping("/delete")
     public ResponseEntity<String> deleteTransaction(@RequestParam int transactionId) {
         transactionService.deleteTransaction(transactionId);
