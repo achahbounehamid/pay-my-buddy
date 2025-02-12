@@ -1,46 +1,149 @@
 <!DOCTYPE html>
-<html lang="fr" xmlns:th="http://www.w3.org/1999/xhtml">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Page de Profil</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Profil - Pay My Buddy</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body class="bg-light">
-<div class="container py-5">
-  <!-- Header with the logo and navigation -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <button class="btn btn-warning">Pay My Buddy</button>
-    <div>
-      <a href="/transfer" class="btn btn-link">Transférer</a>
-      <a href="/profile" class="btn btn-link active">Profil</a>
-      <a href="/add-relationship" class="btn btn-link">Ajouter relation</a>
-      <a href="/logout" class="btn btn-link">Se déconnecter</a>
+<body onload="fetchUserProfile()" class="bg-light">
+<!-- Barre de navigation -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="#">Pay My Buddy</a>
+    <div class="collapse navbar-collapse justify-content-end">
+      <ul class="navbar-nav">
+        <li class="nav-item"><a class="nav-link" href="/transfer">Transférer</a></li>
+        <li class="nav-item"><a class="nav-link active" href="/profile">Profil</a></li>
+        <li class="nav-item"><a class="nav-link" href="/add-connection">Ajouter relation</a></li>
+        <li class="nav-item"><a class="nav-link text-danger" href="#" onclick="logout()">Se déconnecter</a></li>
+      </ul>
     </div>
   </div>
+</nav>
 
-  <!-- Profile Section -->
-  <div class="card p-4">
-    <h4 class="text-center mb-4">Profil</h4>
-    <div class="mb-3 d-flex justify-content-between align-items-center">
-      <strong>Username</strong>
-      <span th:text="${user.username}">Nom d'utilisateur</span> <!-- Affiche l'utilisateur -->
-      <button class="btn btn-warning">Modifier</button>
-    </div>
-    <div class="mb-3 d-flex justify-content-between align-items-center">
-      <strong>Mail</strong>
-      <span th:text="${user.email}">nom@domain.com</span> <!-- Affiche l'email de l'utilisateur -->
-      <button class="btn btn-warning">Modifier</button>
-    </div>
-    <div class="mb-3 d-flex justify-content-between align-items-center">
-      <strong>Mot de passe</strong>
-      <span th:text="${user.password}">mot de passe</span> <!-- Affiche le mot de passe de l'utilisateur -->
-      <button class="btn btn-warning">Modifier</button>
-    </div>
+<!-- Section Profil -->
+<div class="container d-flex justify-content-center align-items-center vh-100">
+  <div class="card p-4 shadow" style="width: 100%; max-width: 500px;">
+    <form id="profileForm">
+      <div class="mb-3">
+        <label class="form-label">Nom d'utilisateur</label>
+        <div class="input-group">
+          <input type="text" class="form-control text-end" id="username" readonly>
+          <span class="input-group-text">&rsaquo;</span>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">E-mail</label>
+        <div class="input-group">
+          <input type="email" class="form-control text-end" id="email" readonly>
+          <span class="input-group-text">&rsaquo;</span>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Mot de passe</label>
+        <div class="input-group">
+          <input type="password" class="form-control text-end" id="password" placeholder="Laisser vide si inchangé" readonly>
+          <span class="input-group-text">&rsaquo;</span>
+        </div>
+      </div>
+      <button type="button" class="btn btn-warning w-100 mt-3" onclick="enableEditing()">Modifier</button>
+      <button type="submit" class="btn btn-success w-100 mt-3 d-none">Enregistrer</button>
+    </form>
   </div>
-
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function fetchUserProfile() {
+      const token = localStorage.getItem("token");
+      if (!token) {
+          window.location.href = "/login";
+          return;
+      }
+
+      fetch("/api/users/me", {
+          method: "GET",
+          headers: {
+              "Authorization": "Bearer " + token
+          }
+      })
+      .then(response => {
+          if (!response.ok) {
+              throw new Error("Accès non autorisé");
+          }
+          return response.json();
+      })
+      .then(data => {
+          document.getElementById("username").value = data.username;
+          document.getElementById("email").value = data.email;
+      })
+      .catch(error => {
+          console.error("Erreur:", error);
+          window.location.href = "/login";
+      });
+  }
+
+  function enableEditing() {
+
+    document.getElementById("username").removeAttribute("readonly");
+    document.getElementById("email").removeAttribute("readonly");
+    document.getElementById("password").removeAttribute("readonly");
+
+      document.getElementById("username").removeAttribute("readonly");
+      document.getElementById("email").removeAttribute("readonly");
+      document.getElementById("password").removeAttribute("readonly");
+
+      document.querySelector(".btn-warning").classList.add("d-none");
+      document.querySelector(".btn-success").classList.remove("d-none");
+  }
+
+  document.getElementById("profileForm").addEventListener("submit", function(event) {
+      event.preventDefault();
+
+      const token = localStorage.getItem("token");
+      console.log("Token envoyé dans la requête :", token);
+
+      if (!token) {
+          window.location.href = "/login";
+          return;
+      }
+
+      const updatedUser = {
+          username: document.getElementById("username").value,
+          email: document.getElementById("email").value,
+          password: document.getElementById("password").value || null
+      };
+  console.log("Données envoyées :", updatedUser);
+
+      fetch("/api/users/me", {
+          method: "PUT",
+          headers: {
+              "Authorization": "Bearer " + token,
+              "Content-Type": "application/json"
+          },
+          body: JSON.stringify(updatedUser)
+      })
+      .then(response => {
+      console.log("Réponse de l'API :", response);
+          if (!response.ok) {
+              throw new Error("Erreur lors de la mise à jour");
+          }
+          return response.text();
+      })
+      .then(message => {
+          alert("Mise à jour réussie !");
+          window.location.reload();
+      })
+      .catch(error => {
+          console.error("Erreur lors de la requête :", error);
+          alert("Erreur lors de la mise à jour");
+      });
+  });
+
+  function logout() {
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+  }
+</script>
 </body>
 </html>

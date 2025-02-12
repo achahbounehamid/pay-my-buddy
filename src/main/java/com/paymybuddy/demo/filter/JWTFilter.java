@@ -39,13 +39,26 @@ public class   JWTFilter extends OncePerRequestFilter {
         String requestPath = request.getServletPath();
         logger.info(" Requête interceptée : " + requestPath);
 
-        List<String> publicEndpoints = Arrays.asList("/api/users/login", "/api/users/register");
-        if (publicEndpoints.contains(requestPath)) {
+        // Liste des endpoints et fichiers statiques qui ne nécessitent pas d'authentification
+        List<String> publicEndpoints = Arrays.asList(
+                "/login", "/register", "/profile", // Pages HTML accessibles sans token
+                "/api/users/login", "/api/users/register", // API publiques
+                "/favicon.ico", "/css/", "/js/", "/images/" // Fichiers statiques
+        );
+
+        // Vérifier si l'URL est publique (commence par un des préfixes définis)
+        if (publicEndpoints.stream().anyMatch(requestPath::startsWith)) {
             logger.info("Endpoint public, pas de vérification du token : " + requestPath);
             filterChain.doFilter(request, response);
             return;
         }
-// Extraction du token
+
+        //  Ajout explicite de `/api/users/me` comme endpoint sécurisé nécessitant un token
+        if (requestPath.startsWith("/api/users/me")) {
+            logger.info(" Endpoint sécurisé : " + requestPath);
+        }
+
+        // Extraction du token JWT
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
@@ -54,28 +67,35 @@ public class   JWTFilter extends OncePerRequestFilter {
             if (jwtService.validateToken(token)) {
                 String username = jwtService.extractUsername(token);
                 List<String> roles = jwtService.extractRoles(token);
-                logger.info("Token valide pour l'utilisateur : " + username + " avec rôles : " + roles);
+                logger.info(" Token valide pour l'utilisateur : " + username + " avec rôles : " + roles);
 
                 // Convertir les rôles en authorities
                 Collection<GrantedAuthority> authorities = roles.stream()
-                        .map(role -> new SimpleGrantedAuthority(role))
+                        .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList());
-                // Charge l'utilisateur et peupler le SecurityContext
+
+                // Charger l'utilisateur et peupler le SecurityContext
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                logger.info("Authentification réussie pour l'utilisateur : " + username);
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                logger.info(" Authentification réussie pour l'utilisateur : " + username);
             } else {
                 logger.warn(" Token invalide ou expiré !");
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token invalide ou expiré !");
+                return;
             }
         } else {
             logger.warn(" Aucun token JWT fourni !");
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Aucun token fourni !");
+            return;
         }
 
         filterChain.doFilter(request, response);
     }
 }
+
 
 
 

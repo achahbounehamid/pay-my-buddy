@@ -35,7 +35,7 @@ public class TransactionController {
 
     // Endpoint pour récupérer les transactions envoyées par un utilisateur
     @GetMapping("/sent")
-    public List<Transaction> getSentTransactions(@RequestParam int userId) {
+    public List<Transaction> getSentTransactions(@RequestParam int  userId) {
         return transactionService.getSentTransactions(userId);
     }
 

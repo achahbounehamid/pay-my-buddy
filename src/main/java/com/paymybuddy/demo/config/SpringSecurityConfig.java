@@ -48,7 +48,16 @@ public class SpringSecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/users/**").permitAll()
+                        .requestMatchers("/login", "/register", "/profile", "/add-connection", "/transfer").permitAll()
+                        .requestMatchers("/favicon.ico", "/css/**", "/js/**", "/images/**").permitAll()
+                        .requestMatchers("/api/transfers").authenticated()
                         .requestMatchers( "/api/**").authenticated())
+
+                .logout(logout -> logout
+                        .logoutSuccessUrl("/login") // Redirection après déconnexion
+                        .permitAll()
+                )
+
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class) // Ajoute le filtre JWT
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {

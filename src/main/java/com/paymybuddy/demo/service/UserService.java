@@ -30,6 +30,11 @@ public class UserService implements UserDetailsService {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User with username " + username + " not found"));
     }
+    //  Récupérer un utilisateur par email
+    public User findUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User with email " + email + " not found"));
+    }
     // Récupérer tous les utilisateurs (pour ADMIN)
     public List<User> findAllUsers() {
         return userRepository.findAll();
@@ -75,6 +80,7 @@ public class UserService implements UserDetailsService {
         User existingUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
         logger.info("Mise à jour de l'utilisateur : " + username);
+
 // Mettre à jour les champs modifiables
         if (updatedUser.getEmail() != null) {
             existingUser.setEmail(updatedUser.getEmail());

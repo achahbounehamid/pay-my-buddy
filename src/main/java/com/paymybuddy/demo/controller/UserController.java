@@ -13,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 
 
@@ -82,16 +83,14 @@ public class UserController {
     // Récupérer les infos de l'utilisateur connecté
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/me")
-//    public ResponseEntity<User> getCurrentUser(Authentication authentication){
-//        String username = authentication.getName();
-//        return  ResponseEntity.ok(userService.findUserByUsername(username));
-//
-//    }
-    public String getCurrentUser(Authentication authentication, Model model) {
-        String username = authentication.getName(); // Récupérer le nom d'utilisateur de l'utilisateur connecté
-        User user = userService.findUserByUsername(username); // Récupérer l'utilisateur par son nom
-        model.addAttribute("user", user); // Ajouter l'objet User au modèle
-        return "profile";  // Retourne le nom de la vue (profile.html)
+
+    public ResponseEntity<?> getCurrentUser(Authentication authentication) {
+        String username = authentication.getName();
+        User user = userService.findUserByUsername(username);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("error", "Utilisateur non trouvé"));
+        }
+        return ResponseEntity.ok(user);
     }
     //  Modifier son propre compte
     @PreAuthorize("isAuthenticated()")

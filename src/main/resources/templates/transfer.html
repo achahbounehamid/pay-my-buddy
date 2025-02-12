@@ -1,81 +1,142 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Page de Transfert</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Transfert - Pay My Buddy</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
-<div class="container py-5">
-    <!-- Header with the logo and navigation -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <button class="btn btn-warning">Pay My Buddy</button>
+
+<div class="container mt-4">
+    <nav class="d-flex justify-content-between">
+        <h3>Pay My Buddy</h3>
         <div>
-            <a href="/transfer" class="btn btn-link active">Transférer</a>
-            <a href="/profile" class="btn btn-link">Profil</a>
-            <a href="/add-relationship" class="btn btn-link">Ajouter relation</a>
-            <a href="/logout" class="btn btn-link">Se déconnecter</a>
+            <a href="/transfer" class="me-3 text-primary fw-bold">Transférer</a>
+            <a href="/profile" class="me-3 text-dark">Profil</a>
+            <a href="/add-connection" class="me-3 text-dark">Ajouter relation</a>
+            <a href="#" id="logout" class="text-dark">Se déconnecter</a>
+        </div>
+    </nav>
+
+    <h4 class="mt-4">Page de transfert</h4>
+
+    <!-- Formulaire de transfert -->
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <select id="relationSelect" class="form-select">
+                <option selected disabled>Sélectionner une relation</option>
+                <!-- Relations seront chargées ici -->
+            </select>
+        </div>
+        <div class="col-md-4">
+            <input type="text" id="description" class="form-control" placeholder="Description">
+        </div>
+        <div class="col-md-2">
+            <input type="number" id="amount" class="form-control" placeholder="0€" min="1">
+        </div>
+        <div class="col-md-2">
+            <button id="payButton" class="btn btn-primary w-100">Payer</button>
         </div>
     </div>
 
-    <!-- Transfer Form -->
-    <div class="card p-4 mb-4">
-        <h4 class="text-center mb-4">Transfert</h4>
-        <form>
-            <div class="mb-3">
-                <label for="relationSelect" class="form-label">Sélectionner une relation</label>
-                <select class="form-select" id="relationSelect" required>
-                    <option selected disabled>Choisir...</option>
-                    <option value="1">Laure-Anne</option>
-                    <option value="2">Clara</option>
-                    <option value="3">Luc</option>
-                </select>
-            </div>
-            <div class="mb-3">
-                <label for="descriptionInput" class="form-label">Description</label>
-                <input type="text" class="form-control" id="descriptionInput" placeholder="Description" required>
-            </div>
-            <div class="mb-3">
-                <label for="amountInput" class="form-label">Montant</label>
-                <input type="number" class="form-control" id="amountInput" placeholder="0€" required>
-            </div>
-            <button type="submit" class="btn btn-primary w-100">Payer</button>
-        </form>
-    </div>
-
-    <!-- Transactions Table -->
-    <div class="card p-4">
-        <h4 class="text-center mb-4">Mes Transactions</h4>
+    <!-- Historique des transactions -->
+    <div class="mt-5">
+        <h5>Mes Transactions</h5>
         <table class="table">
             <thead>
             <tr>
-                <th scope="col">Relations</th>
-                <th scope="col">Description</th>
-                <th scope="col">Montant</th>
+                <th>Relations</th>
+                <th>Description</th>
+                <th>Montant</th>
             </tr>
             </thead>
-            <tbody>
-            <tr>
-                <td>Laure-Anne</td>
-                <td>Restaurant</td>
-                <td>10€</td>
-            </tr>
-            <tr>
-                <td>Clara</td>
-                <td>Voyage</td>
-                <td>25€</td>
-            </tr>
-            <tr>
-                <td>Luc</td>
-                <td>Billets de cinéma</td>
-                <td>8€</td>
-            </tr>
+            <tbody id="transactionsTable">
+            <!-- Transactions seront chargées ici -->
             </tbody>
         </table>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+            window.location.href = "/login"; // Redirection si non authentifié
+            return;
+        }
+
+        // Charger les relations
+        fetch("/api/connections", {
+            headers: { "Authorization": "Bearer " + token }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById("relationSelect");
+            data.forEach(relation => {
+                const option = document.createElement("option");
+                option.value = relation.email;
+                option.textContent = relation.username;
+                select.appendChild(option);
+            });
+        });
+
+        // Charger les transactions
+        fetch("/api/transfers", {
+            headers: { "Authorization": "Bearer " + token }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const table = document.getElementById("transactionsTable");
+            data.forEach(transaction => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${transaction.receiver}</td>
+                    <td>${transaction.description}</td>
+                    <td>${transaction.amount}€</td>
+                `;
+                table.appendChild(row);
+            });
+        });
+
+        // Gérer le paiement
+        document.getElementById("payButton").addEventListener("click", function () {
+            const receiver = document.getElementById("relationSelect").value;
+            const description = document.getElementById("description").value;
+            const amount = document.getElementById("amount").value;
+
+            if (!receiver || !amount || amount <= 0) {
+                alert("Veuillez sélectionner un destinataire et entrer un montant valide.");
+                return;
+            }
+
+            fetch("/api/transfers", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify({ receiver, description, amount })
+            })
+            .then(response => response.json())
+            .then(() => {
+                alert("Transfert réussi !");
+                window.location.reload();
+            })
+            .catch(error => {
+                alert("Erreur lors du transfert.");
+                console.error(error);
+            });
+        });
+
+        // Gérer la déconnexion
+        document.getElementById("logout").addEventListener("click", function () {
+            localStorage.removeItem("token");
+            window.location.href = "/login";
+        });
+    });
+</script>
+
 </body>
 </html>
