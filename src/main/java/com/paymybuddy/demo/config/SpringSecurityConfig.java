@@ -47,11 +47,23 @@ public class SpringSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users/**").permitAll()
-                        .requestMatchers("/login", "/register", "/profile", "/add-connection", "/transfer").permitAll()
-                        .requestMatchers("/favicon.ico", "/css/**", "/js/**", "/images/**").permitAll()
-                        .requestMatchers("/api/transfers").authenticated()
-                        .requestMatchers( "/api/**").authenticated())
+//                        .requestMatchers("/api/users/**").permitAll()
+//                       .requestMatchers("/api/users/login", "/api/users/register").permitAll()
+//                        .requestMatchers("/login", "/register", "/profile", "/addConnection", "/transfer").permitAll()
+//                        .requestMatchers("/favicon.ico", "/css/**", "/js/**", "/images/**").permitAll()
+//                        .requestMatchers("/api/connections", "/api/transfers").authenticated()
+//                        .requestMatchers("/api/transactions/**").authenticated()
+//                        .requestMatchers( "/api/**").authenticated())
+                        .requestMatchers(
+                                "/api/users/**",         // Authentification et inscription publiques
+                                "/login", "/register", "/profile", "/addConnection", "/transfer", // Pages HTML accessibles sans token
+                                "/favicon.ico", "/css/**", "/js/**", "/images/**" // Fichiers statiques
+                        ).permitAll()
+                        .requestMatchers(
+                                "/api/connections", "/api/transfers", "/api/transactions/**" // Toutes les APIs qui nécessitent un token JWT
+                        ).authenticated()
+                        .requestMatchers("/api/**").authenticated())
+
 
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login") // Redirection après déconnexion
@@ -61,7 +73,7 @@ public class SpringSecurityConfig {
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class) // Ajoute le filtre JWT
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {
-                            logger.warn("Authentication failed: " + authException.getMessage());
+                            logger.info("Authentication failed: " + authException.getMessage());
                             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
                         }))
                 .build();

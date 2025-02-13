@@ -33,10 +33,10 @@ public class LoginController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        logger.info("Tentative de connexion pour l'utilisateur: " + loginRequest.getUsername());
+        logger.info("Tentative de connexion pour l'utilisateur: " + loginRequest.getEmail());
 
         // Vérifier si l'utilisateur existe avec son email
-        User user = userService.findUserByEmail(loginRequest.getUsername());
+        User user = userService.findUserByEmail(loginRequest.getEmail());
         if (user == null) {
             logger.info(" Échec de connexion: Utilisateur non trouvé avec cet email.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Identifiants incorrects");
@@ -45,7 +45,7 @@ public class LoginController {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            user.getUsername(), loginRequest.getPassword() //  Utiliser username
+                            user.getEmail(), loginRequest.getPassword() //  Utiliser username
                     )
             );
 
@@ -53,7 +53,7 @@ public class LoginController {
 
             //  Générer le token JWT
             String token = jwtService.generateToken(authentication);
-            logger.info("Token généré pour l'utilisateur: " + loginRequest.getUsername());
+            logger.info("Token généré pour l'utilisateur: " + loginRequest.getEmail());
 
             return ResponseEntity.ok(Collections.singletonMap("token", token));
         } catch (BadCredentialsException e) {

@@ -15,7 +15,7 @@
     <div>
       <a href="/transfer" class="me-3">Transférer</a>
       <a href="/profile" class="me-3">Profil</a>
-      <a href="/add-connection" class="fw-bold text-primary">Ajouter relation</a>
+      <a href="/addConnection" class="fw-bold text-primary">Ajouter relation</a>
       <a href="#" id="logout" class="ms-3 text-danger">Se déconnecter</a>
     </div>
   </div>
@@ -39,75 +39,60 @@
 </div>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function() {
+  document.addEventListener("DOMContentLoaded", function () {
       const token = localStorage.getItem("token");
+      console.log("Token récupéré :", token);
 
-      //  Vérifie si l'utilisateur est connecté
       if (!token) {
-          window.location.href = "/login"; // Redirige si pas de token
+          console.warn("Aucun token trouvé, redirection vers /login");
+          window.location.href = "/login";
           return;
       }
-
-      //  Ajouter le token à toutes les requêtes AJAX
-      fetch("/add-connection", {
-          method: "GET",
-          headers: {
-              "Authorization": "Bearer " + token //  Ajoute le token JWT dans la requête
-          }
-      })
-      .then(response => {
-          if (!response.ok) {
-              throw new Error("Accès non autorisé !");
-          }
-      })
-      .catch(error => {
-          console.error("Erreur d'accès :", error);
-          window.location.href = "/login"; //  Redirige en cas d'erreur
-      });
-
-      //  Ajout de relation
-      document.getElementById("addButton").addEventListener("click", function() {
+const errorMessageDiv = document.getElementById("error-message");
+      // Gérer l'ajout d'une relation
+      document.getElementById("addButton").addEventListener("click", function () {
           const email = document.getElementById("email").value;
 
           if (!email) {
-              document.getElementById("error-message").textContent = "Veuillez entrer un email valide.";
-              document.getElementById("error-message").classList.remove("d-none");
+            errorMessageDiv.textContent = "Veuillez entrer un email valide.";
+            errorMessageDiv.classList.remove("d-none");
               return;
           }
 
-          fetch("/api/connections", {
+          console.log("Envoi de la requête pour ajouter une relation avec l'email :", email);
+
+          fetch(`/api/connections/add?friendEmail=${encodeURIComponent(email)}`, {
               method: "POST",
               headers: {
-                  "Content-Type": "application/json",
-                  "Authorization": "Bearer " + token //  Ajout du token JWT
-              },
-              body: JSON.stringify({ email })
-          })
-          .then(response => {
-              if (!response.ok) {
-                  throw new Error("Impossible d'ajouter cette relation.");
+                  "Authorization": "Bearer " + token
               }
-              return response.json();
           })
-          .then(data => {
-              alert("Relation ajoutée avec succès !");
-              document.getElementById("email").value = "";
-          })
-          .catch(error => {
-              document.getElementById("error-message").textContent = error.message;
-              document.getElementById("error-message").classList.remove("d-none");
-          });
+              .then(response => {
+                  if (!response.ok) {
+                       return response.text().then(text => { throw new Error(text || "Erreur lors de l'ajout de la relation"); });
+                  }
+                  return response.text();
+              })
+              .then(data => {
+                 alert("Relation ajoutée avec succès !");
+                 console.log("Réponse de l'API :", data);
+                errorMessageDiv.classList.add("d-none");
+                document.getElementById("email").value = "";
+              })
+              .catch(error => {
+                 console.error("Erreur lors de l'ajout :", error);
+                errorMessageDiv.textContent = error.message;
+                errorMessageDiv.classList.remove("d-none");
+              });
       });
 
-      //  Gestion de la déconnexion
-      document.getElementById("logout").addEventListener("click", function() {
+      // Gérer la déconnexion
+      document.getElementById("logout").addEventListener("click", function () {
           localStorage.removeItem("token");
           window.location.href = "/login";
       });
   });
 </script>
-
-
 
 </body>
 </html>

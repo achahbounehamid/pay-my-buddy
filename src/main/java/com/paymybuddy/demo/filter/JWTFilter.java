@@ -41,9 +41,9 @@ public class   JWTFilter extends OncePerRequestFilter {
 
         // Liste des endpoints et fichiers statiques qui ne nécessitent pas d'authentification
         List<String> publicEndpoints = Arrays.asList(
-                "/login", "/register", "/profile", // Pages HTML accessibles sans token
-                "/api/users/login", "/api/users/register", // API publiques
-                "/favicon.ico", "/css/", "/js/", "/images/" // Fichiers statiques
+                "/api/users/login", "/api/users/register",
+                "/login", "/register", "/profile", "/addConnection", "/transfer",
+                "/favicon.ico", "/css/", "/js/", "/images/"
         );
 
         // Vérifier si l'URL est publique (commence par un des préfixes définis)
@@ -81,6 +81,7 @@ public class   JWTFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
 
                 logger.info(" Authentification réussie pour l'utilisateur : " + username);
+
             } else {
                 logger.warn(" Token invalide ou expiré !");
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token invalide ou expiré !");
