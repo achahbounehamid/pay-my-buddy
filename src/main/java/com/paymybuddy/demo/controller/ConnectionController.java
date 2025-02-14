@@ -10,6 +10,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -39,17 +41,23 @@ public class ConnectionController {
         }
     }
     @GetMapping
-    public ResponseEntity<List<Map<String, String>>> getFriends(Authentication authentication) {
+    public ResponseEntity<List<Map<String, Object>>> getFriends(Authentication authentication) {
         String email = authentication.getName();
         List<User> friends = connectionService.getFriends(email);
-        List<Map<String, String>> result = friends.stream()
-                .map(friend -> Map.of(
-                        "email", friend.getEmail(),
-                        "username", friend.getUsername()
-                ))
+
+        List<Map<String, Object>> result = friends.stream()
+                .map(friend -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("id", friend.getId());
+                    map.put("email", friend.getEmail());
+                    map.put("username", friend.getUsername());
+                    return map;
+                })
                 .collect(Collectors.toList());
+
         return ResponseEntity.ok(result);
     }
+
 
     @DeleteMapping()
     public String removeFriend() {

@@ -37,7 +37,7 @@
             <input type="number" id="amount" class="form-control" placeholder="0€" min="1">
         </div>
         <div class="col-md-2">
-            <button id="payButton" class="btn btn-primary w-100" disabled>Payer</button>
+            <button id="payButton" class="btn btn-primary w-100" >Payer</button>
         </div>
     </div>
 
@@ -99,6 +99,7 @@
 
         data.forEach(relation => {
             const option = document.createElement("option");
+
             option.value = relation.email;
             option.textContent = relation.username;
             select.appendChild(option);
@@ -148,22 +149,21 @@
         }
 
         const receiverId = relationsMap.get(receiverEmail);
-        if (!receiverId) {
-            alert("Erreur : Destinataire introuvable.");
-            return;
-        }
+ if (!receiverId) {
+        alert("Erreur : Destinataire introuvable.");
+        return;
+    }
+    console.log("Paiement en cours vers :", { senderId: userId, receiverId, amount, description });
 
-        console.log("Paiement en cours vers :", { senderId: userId, receiverId, amount, description });
-
-        fetch("/api/transactions/create", {
+        fetch(`/api/transactions/create?senderId=${userId}&receiverId=${receiverId}&amount=${amount}&description=${encodeURIComponent(description)}`,{
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
+
                 "Authorization": "Bearer " + token
             },
             body: JSON.stringify({
                 senderId: userId,
-                receiverId,
+                receiverId: receiverId,
                 amount,
                 description
             })
