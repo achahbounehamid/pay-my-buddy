@@ -21,10 +21,12 @@
         <!-- Formulaire de connexion -->
         <form id="loginForm">
             <div class="mb-3">
-                <input type="email" id="email" class="form-control" placeholder="Mail" required>
+                <input type="email" id="email" class="form-control" placeholder="Mail" required autocomplete="email">
+
             </div>
             <div class="mb-3">
-                <input type="password" id="password" class="form-control" placeholder="Mot de passe" required>
+                <input type="password" id="password" class="form-control" placeholder="Mot de passe" required autocomplete="current-password">
+
             </div>
             <button type="submit" class="btn btn-primary w-100">Se connecter</button>
         </form>
@@ -37,6 +39,7 @@
 
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
+console.log("Tentative de connexion avec :", { email, password });
 
         fetch("/api/users/login", {
             method: "POST",
@@ -47,11 +50,13 @@
         })
         .then(response => {
             if (!response.ok) {
+            console.log("Statut de la réponse :", response.status);
                 throw new Error("Identifiants incorrects");
             }
             return response.json();
         })
         .then(data => {
+        console.log("Token reçu :", data.token);
             // Stocker le token JWT
             localStorage.setItem("token", data.token);
 
@@ -59,6 +64,7 @@
             window.location.href = "/profile";
         })
         .catch(error => {
+         console.error("Erreur lors de la connexion :", error);
             document.getElementById("error-message").textContent = error.message;
             document.getElementById("error-message").classList.remove("d-none");
         });

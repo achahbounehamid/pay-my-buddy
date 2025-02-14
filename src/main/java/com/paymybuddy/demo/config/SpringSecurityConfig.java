@@ -4,12 +4,12 @@ import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import com.paymybuddy.demo.filter.JWTFilter;
 import com.paymybuddy.demo.service.JWTService;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -30,7 +30,7 @@ import javax.crypto.spec.SecretKeySpec;
 @Configuration
 public class SpringSecurityConfig {
 
-    private static final Logger logger = LoggerFactory.getLogger(SpringSecurityConfig.class);
+    private static final Logger logger = LoggerFactory.getLogger( SpringSecurityConfig.class);
 
     @Value("${jwt.secret-key}")
     private String jwtKey;
@@ -42,28 +42,18 @@ public class SpringSecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, JWTFilter jwtFilter) throws Exception {
+    public SecurityFilterChain filterChain(@NotNull HttpSecurity http, JWTFilter jwtFilter) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers("/api/users/**").permitAll()
+                        .requestMatchers("/api/users/**").permitAll()
 //                       .requestMatchers("/api/users/login", "/api/users/register").permitAll()
-//                        .requestMatchers("/login", "/register", "/profile", "/addConnection", "/transfer").permitAll()
-//                        .requestMatchers("/favicon.ico", "/css/**", "/js/**", "/images/**").permitAll()
-//                        .requestMatchers("/api/connections", "/api/transfers").authenticated()
-//                        .requestMatchers("/api/transactions/**").authenticated()
-//                        .requestMatchers( "/api/**").authenticated())
-                        .requestMatchers(
-                                "/api/users/**",         // Authentification et inscription publiques
-                                "/login", "/register", "/profile", "/addConnection", "/transfer", // Pages HTML accessibles sans token
-                                "/favicon.ico", "/css/**", "/js/**", "/images/**" // Fichiers statiques
-                        ).permitAll()
-                        .requestMatchers(
-                                "/api/connections", "/api/transfers", "/api/transactions/**" // Toutes les APIs qui nécessitent un token JWT
-                        ).authenticated()
-                        .requestMatchers("/api/**").authenticated())
-
+                        .requestMatchers("/login", "/register", "/profile", "/addConnection", "/transfer").permitAll()
+                        .requestMatchers("/favicon.ico", "/css/**", "/js/**", "/images/**").permitAll()
+                        .requestMatchers("/api/connections", "/api/transfers").authenticated()
+                        .requestMatchers("/api/transactions/**").authenticated()
+                        .requestMatchers( "/api/**").authenticated())
 
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login") // Redirection après déconnexion

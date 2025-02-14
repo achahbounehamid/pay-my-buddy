@@ -56,6 +56,7 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "connection_id")
     )
 //    private Set<User> connections = new HashSet<>();
+    @JsonIgnore
     private Set<User> connections;
 
     public int getId() {

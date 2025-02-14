@@ -8,6 +8,6 @@ public class ProfileViewController {
 
     @GetMapping("/profile")
     public String showProfilePage() {
-        return "profile"; // Renvoie la vue Thymeleaf profile.html
+        return "profile";
     }
 }

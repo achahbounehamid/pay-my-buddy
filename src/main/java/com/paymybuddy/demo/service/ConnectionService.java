@@ -27,7 +27,9 @@ public class ConnectionService {
     }
     // Ajouter un ami
     public void addFriend(String username, String friendEmail) {
-        User user = userRepository.findByUsername(username)
+//        User user = userRepository.findByUsername(username)
+        User user = userRepository.findByEmail(username)
+
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
 
         User friend = userRepository.findByEmail(friendEmail)
@@ -54,7 +56,9 @@ public class ConnectionService {
 
     // Récupérer les amis d'un utilisateur
     public List<User> getFriends(String username) {
-        User user = userRepository.findByUsername(username)
+//        User user = userRepository.findByUsername(username)
+        User user = userRepository.findByEmail(username)
+
                 .orElseThrow(() -> new IllegalArgumentException("User not found."));
         // Forcer l'initialisation des connexions
         user.getConnections().size();
@@ -62,9 +66,11 @@ public class ConnectionService {
     }
 
     // Supprimer un ami
-    public void removeFriend(String username, String friendEmail) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
+    public void removeFriend(String email, String friendEmail) {
+//        User user = userRepository.findByUsername(username)
+        User user = userRepository.findByEmail(email)
+
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + email));
 
         User friend = userRepository.findByEmail(friendEmail)
                 .orElseThrow(() -> new IllegalArgumentException("Friend not found: " + friendEmail));

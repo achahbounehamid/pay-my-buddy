@@ -61,140 +61,133 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-     const token = localStorage.getItem("token");
-     console.log("Token récupéré :", token);
+    const token = localStorage.getItem("token");
+    console.log("Token récupéré :", token);
 
-     if (!token) {
-         console.warn("Aucun token trouvé, redirection vers /login");
-         window.location.href = "/login";
-         return;
-     }
+    if (!token) {
+        console.warn("Aucun token trouvé, redirection vers /login");
+        window.location.href = "/login";
+        return;
+    }
 
-     // Vérification rapide du token (optionnelle)
-     if (!token.startsWith("eyJ")) {
-         console.error("Token corrompu ou invalide !");
-         localStorage.removeItem("token");
-         window.location.href = "/login";
-         return;
-     }
+    if (!token.startsWith("eyJ")) {
+        console.error("Token corrompu ou invalide !");
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+        return;
+    }
 
-     let userId = null; // Pour stocker l'ID de l'utilisateur connecté
-     let relationsMap = new Map(); // Pour mapper l'email à l'ID des relations
+    let userId = null;
+    let relationsMap = new Map();
 
-     // Récupérer les infos de l'utilisateur connecté pour avoir son ID
-     fetch("/api/users/me", {
-         headers: {
-             "Authorization": "Bearer " + token
-         }
-     })
-     .then(response => response.json())
-     .then(user => {
-         console.log("Utilisateur connecté :", user);
-         userId = user.id; // Stocker l'ID de l'utilisateur
+    fetch("/api/users/me", {
+        headers: { "Authorization": "Bearer " + token }
+    })
+    .then(response => response.json())
+    .then(user => {
+        console.log("Utilisateur connecté :", user);
+        userId = user.id;
 
-         //  Charger les relations (amis)
-         console.log("Token envoyé pour connections:", token);
-         return fetch("/api/connections", {
+        return fetch("/api/connections", {
+            headers: { "Authorization": "Bearer " + token }
+        });
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log("Données relations reçues :", data);
+        const select = document.getElementById("relationSelect");
 
-             headers: { "Authorization": "Bearer " + token }
+        data.forEach(relation => {
+            const option = document.createElement("option");
+            option.value = relation.email;
+            option.textContent = relation.username;
+            select.appendChild(option);
 
-         });
-     })
-     .then(response => {
-     console.log("Statut réponse /api/connections :", response.status);
-         if (!response.ok) throw new Error("Erreur lors du chargement des relations");
-         return response.json();
-     })
-     .then(data => {
-         console.log("Relations chargées :", data);
-         const select = document.getElementById("relationSelect");
-         data.forEach(relation => {
-             relationsMap.set(relation.email, relation.id); // Stocker email -> id
-             const option = document.createElement("option");
-             option.value = relation.email; // Stocker email comme valeur
-             option.textContent = relation.username;
-             select.appendChild(option);
-         });
+            // Associer l'email à l'ID pour l'envoi
+            relationsMap.set(relation.email, relation.id);
+        });
 
-         // Charger les transactions envoyées (après avoir récupéré l'userId)
-         return fetch(`/api/transactions/sent?userId=${userId}`, {
-             headers: { "Authorization": "Bearer " + token }
-         });
-     })
-     .then(response => {
-         if (!response.ok) throw new Error("Erreur lors du chargement des transactions");
-         return response.json();
-     })
-     .then(data => {
-         console.log("Transactions chargées :", data);
-         const table = document.getElementById("transactionsTable");
-         table.innerHTML = ''; // Nettoyer la table avant remplissage
-         data.forEach(transaction => {
-             const row = document.createElement("tr");
-             row.innerHTML = `
-                 <td>${transaction.receiver.username}</td>
-                 <td>${transaction.description}</td>
-                 <td>${transaction.amount}€</td>
-             `;
-             table.appendChild(row);
-         });
-     })
-     .catch(error => console.error("Erreur lors du chargement des données :", error));
+        return fetch(`/api/transactions/sent?userId=${userId}`, {
+            headers: { "Authorization": "Bearer " + token }
+        });
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.text().then(text => {
+                throw new Error("Erreur lors du chargement des transactions : " + text);
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log("Transactions chargées :", data);
+        const table = document.getElementById("transactionsTable");
+        table.innerHTML = '';
 
-     //  Gérer le paiement
-     document.getElementById("payButton").addEventListener("click", function () {
-         const receiverEmail = document.getElementById("relationSelect").value;
-         const description = document.getElementById("description").value;
-         const amount = parseFloat(document.getElementById("amount").value);
+        data.forEach(transaction => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${transaction.receiver.username}</td>
+                <td>${transaction.description}</td>
+                <td>${transaction.amount}€</td>
+            `;
+            table.appendChild(row);
+        });
+    })
+    .catch(error => console.error("Erreur lors du chargement des données :", error));
 
-         if (!receiverEmail || isNaN(amount) || amount <= 0) {
-             alert("Veuillez sélectionner un destinataire et entrer un montant valide.");
-             return;
-         }
+    // Gérer le paiement
+    document.getElementById("payButton").addEventListener("click", function () {
+        const receiverEmail = document.getElementById("relationSelect").value;
+        const description = document.getElementById("description").value;
+        const amount = parseFloat(document.getElementById("amount").value);
 
-         const receiverId = relationsMap.get(receiverEmail);
+        if (!receiverEmail || isNaN(amount) || amount <= 0) {
+            alert("Veuillez sélectionner un destinataire et entrer un montant valide.");
+            return;
+        }
 
-         if (!receiverId) {
-             alert("Erreur : Destinataire introuvable.");
-             return;
-         }
+        const receiverId = relationsMap.get(receiverEmail);
+        if (!receiverId) {
+            alert("Erreur : Destinataire introuvable.");
+            return;
+        }
 
-         console.log("Paiement en cours vers :", { senderId: userId, receiverId, amount, description });
+        console.log("Paiement en cours vers :", { senderId: userId, receiverId, amount, description });
 
-         fetch("/api/transactions/create", {
-             method: "POST",
-             headers: {
-                 "Content-Type": "application/json",
-                 "Authorization": "Bearer " + token
-             },
-             body: JSON.stringify({
-                 senderId,
-                 receiverId,
-                 amount,
-                 description
-             })
-         })
-         .then(response => {
-             if (!response.ok) throw new Error("Erreur lors du transfert");
-             return response.text();
-         })
-         .then(() => {
-             alert("Transfert réussi !");
-             window.location.reload();
-         })
-         .catch(error => {
-             alert("Erreur lors du transfert.");
-             console.error(error);
-         });
-     });
+        fetch("/api/transactions/create", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            },
+            body: JSON.stringify({
+                senderId: userId,
+                receiverId,
+                amount,
+                description
+            })
+        })
+        .then(response => {
+            if (!response.ok) return response.text().then(text => { throw new Error(text); });
+            return response.text();
+        })
+        .then(() => {
+            alert("Transfert réussi !");
+            window.location.reload();
+        })
+        .catch(error => {
+            alert("Erreur lors du transfert : " + error.message);
+            console.error(error);
+        });
+    });
 
-     // Gérer la déconnexion
-     document.getElementById("logout").addEventListener("click", function () {
-         console.log("Déconnexion de l'utilisateur");
-         localStorage.removeItem("token");
-         window.location.href = "/login";
-     });
- });
+    // Gérer la déconnexion
+    document.getElementById("logout").addEventListener("click", function () {
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+    });
+});
 
 </script>
 

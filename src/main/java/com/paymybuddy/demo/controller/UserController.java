@@ -83,11 +83,8 @@ public class UserController {
     // Récupérer les infos de l'utilisateur connecté
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/me")
-
     public ResponseEntity<?> getCurrentUser(Authentication authentication) {
-//        String username = authentication.getName();
-//        User user = userService.findUserByUsername(username);
-        String email = authentication.getName(); // Email car loadUserByUsername utilise l'email
+        String email = authentication.getName();
         User user = userService.findUserByEmail(email);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("error", "Utilisateur non trouvé"));

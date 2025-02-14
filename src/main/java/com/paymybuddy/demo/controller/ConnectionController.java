@@ -8,8 +8,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/connections")
@@ -18,11 +21,11 @@ public class ConnectionController {
     @Autowired
     private ConnectionService connectionService;
 
-//    @PreAuthorize("isAuthenticated()")
     @PostMapping("/add")
     public ResponseEntity<String> addFriend(@RequestParam String friendEmail, Authentication authentication) {
         // Vérification du paramètre friendEmail
-        if (friendEmail == null || friendEmail.isEmpty()) {
+//        if (friendEmail == null || friendEmail.isEmpty())
+        if (!StringUtils.hasText(friendEmail)){
             return ResponseEntity.badRequest().body("Friend email is required");
         }
         // Appeler le service pour ajouter un ami
@@ -35,12 +38,19 @@ public class ConnectionController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
-    @GetMapping()
-    public ResponseEntity<List<User>> getFriends(Authentication authentication) {
-        String username = authentication.getName(); // Utilisateur authentifié
-        List<User> friends = connectionService.getFriends(username);
-        return ResponseEntity.ok(friends); // Retourne la liste des amis
+    @GetMapping
+    public ResponseEntity<List<Map<String, String>>> getFriends(Authentication authentication) {
+        String email = authentication.getName();
+        List<User> friends = connectionService.getFriends(email);
+        List<Map<String, String>> result = friends.stream()
+                .map(friend -> Map.of(
+                        "email", friend.getEmail(),
+                        "username", friend.getUsername()
+                ))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(result);
     }
+
     @DeleteMapping()
     public String removeFriend() {
 //        String username = authentication.getName(); // Utilisateur authentifié
