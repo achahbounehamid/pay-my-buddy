@@ -1,4 +1,4 @@
-package com.paymybuddy.demo.controller;
+package com.paymybuddy.demo.controller.rest;
 
 import com.paymybuddy.demo.model.User;
 import com.paymybuddy.demo.service.ConnectionService;
@@ -10,7 +10,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,16 +25,20 @@ public class ConnectionController {
     @PostMapping("/add")
     public ResponseEntity<String> addFriend(@RequestParam String friendEmail, Authentication authentication) {
         // Vérification du paramètre friendEmail
-//        if (friendEmail == null || friendEmail.isEmpty())
+        String currentUserEmail = authentication.getName();
+        System.out.println("Tentative d'ajout d'ami : " + friendEmail + " pour l'utilisateur : " + currentUserEmail);
         if (!StringUtils.hasText(friendEmail)){
             return ResponseEntity.badRequest().body("Friend email is required");
         }
         // Appeler le service pour ajouter un ami
         try {
-            connectionService.addFriend(authentication.getName(), friendEmail);
+//            connectionService.addFriend(authentication.getName(), friendEmail);
+
+            connectionService.addFriend(currentUserEmail, friendEmail);
             return ResponseEntity.ok("Friend added successfully!");
 
         } catch (IllegalArgumentException e) {
+            e.printStackTrace();
 
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
@@ -58,19 +61,14 @@ public class ConnectionController {
         return ResponseEntity.ok(result);
     }
 
-
     @DeleteMapping()
     public String removeFriend() {
-//        String username = authentication.getName(); // Utilisateur authentifié
-//        connectionService.removeFriend(username, friendEmail);
-//        return ResponseEntity.ok("Friend removed successfully!");
         UserDetails userDetails = (UserDetails) SecurityContextHolder
                 .getContext()
                 .getAuthentication()
                 .getPrincipal();
-//        System.out.println(userDetails);
-        return "User deleted successfully!";
 
+        return "User deleted successfully!";
     }
 }
 

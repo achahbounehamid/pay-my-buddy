@@ -76,17 +76,17 @@ public class UserService implements UserDetailsService {
     }
     //  Mettre à jour l'utilisateur connecté
 //    @Transactional
-    public void updateUserByUsername(String username, User updatedUser) {
-        User existingUser = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
-        logger.info("Mise à jour de l'utilisateur : " + username);
+    public void updateUserByUserEmail(String email, User updatedUser) {
+        User existingUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + email));
+        logger.info("Mise à jour de l'utilisateur : " + email);
 
 // Mettre à jour les champs modifiables
         if (updatedUser.getEmail() != null) {
             existingUser.setEmail(updatedUser.getEmail());
         }
         if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
-            existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
+            existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword().trim()));
         }
         if (updatedUser.getBalance() != null) {
             logger.info("Mise à jour de la balance: " + updatedUser.getBalance());
@@ -97,7 +97,7 @@ public class UserService implements UserDetailsService {
         }
 //  Sauvegarder les modifications
         userRepository.save(existingUser);
-        logger.info("User updated successfully: " + existingUser.getUsername());
+        logger.info("User updated successfully: " + existingUser.getEmail());
     }
 
     // Supprimer l'utilisateur connecté
@@ -121,7 +121,6 @@ public class UserService implements UserDetailsService {
                 Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"))
         );
     }
-
 
 }
 

@@ -27,7 +27,6 @@ public class ConnectionService {
     }
     // Ajouter un ami
     public void addFriend(String username, String friendEmail) {
-//        User user = userRepository.findByUsername(username)
         User user = userRepository.findByEmail(username)
 
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
@@ -44,11 +43,15 @@ public class ConnectionService {
         Connections connection1 = new Connections();
         connection1.setUser(user);
         connection1.setFriend(friend);
+        connection1.setUserId(user.getId());
+        connection1.setConnectionId(friend.getId());
         connectionRepository.save(connection1);
         // Créer l'autre connexion bidirectionnelle (de friend vers user)
         Connections connection2 = new Connections();
         connection2.setUser(friend);
         connection2.setFriend(user);
+        connection2.setUserId(friend.getId());
+        connection2.setConnectionId(user.getId());
         connectionRepository.save(connection2);
 
 

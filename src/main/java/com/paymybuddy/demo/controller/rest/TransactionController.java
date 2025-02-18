@@ -1,4 +1,4 @@
-package com.paymybuddy.demo.controller;
+package com.paymybuddy.demo.controller.rest;
 
 import com.paymybuddy.demo.model.Transaction;
 import com.paymybuddy.demo.service.TransactionService;

@@ -1,4 +1,4 @@
-package com.paymybuddy.demo.controller;
+package com.paymybuddy.demo.controller.rest;
 
 import com.paymybuddy.demo.model.LoginRequest;
 import com.paymybuddy.demo.model.User;

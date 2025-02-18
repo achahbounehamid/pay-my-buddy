@@ -1,9 +1,9 @@
-package com.paymybuddy.demo.controller;
-import org.springframework.ui.Model;
+package com.paymybuddy.demo.controller.rest;
 
 import com.paymybuddy.demo.model.User;
 import com.paymybuddy.demo.service.UserService;
-import jakarta.validation.Valid;
+import com.paymybuddy.demo.validation.OnCreate;
+import com.paymybuddy.demo.validation.OnUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
@@ -20,6 +21,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
+
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
     @Autowired
     private UserService userService;
@@ -29,9 +31,10 @@ public class UserController {
     public User getUserByUsername(@PathVariable String username) {
         return userService.findUserByUsername(username);
     }
+
     // Inscription d'un nouvel utilisateur
     @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@Valid @RequestBody User user) {
+    public ResponseEntity<String> registerUser(@Validated(OnCreate.class) @RequestBody User user) {
         logger.info("Register endpoint called with user: " + user.getEmail());
         try {
             userService.registerUser(user);
@@ -52,7 +55,7 @@ public class UserController {
         return  ResponseEntity.ok(userService.findAllUsers());
     }
     // Récupérer un utilisateur par ID (réservé aux ADMIN)
-    @PreAuthorize("hasRole('ADMIN)")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/id/{id}")
     public  ResponseEntity<User> getUserById(@PathVariable int id){
         User user =userService.findUserById(id);
@@ -61,7 +64,7 @@ public class UserController {
     // Modifier un utilisateur par ID (réservé aux ADMIN)
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/id/{id}")
-    public  ResponseEntity<String> updateUser(@PathVariable int id, @Valid @RequestBody User updateUser){
+    public  ResponseEntity<String> updateUser(@PathVariable int id, @Validated(OnUpdate.class) @RequestBody User updateUser){
         try {
             userService.updateUser(id, updateUser);
             return ResponseEntity.ok("User updated successfully");
@@ -94,11 +97,11 @@ public class UserController {
     //  Modifier son propre compte
     @PreAuthorize("isAuthenticated()")
     @PutMapping("/me")
-    public ResponseEntity<String> updateCurrentUser(Authentication authentication, @Valid @RequestBody User updateUser){
-        String username = authentication.getName();
-        logger.info("Mise à jour des infos de l'utilisateur: {}", username);
+    public ResponseEntity<String> updateCurrentUser(Authentication authentication, @Validated(OnUpdate.class) @RequestBody User updateUser){
+        String email = authentication.getName();
+        logger.info("Mise à jour des infos de l'utilisateur: {}", email);
         try {
-            userService.updateUserByUsername(username, updateUser);
+            userService.updateUserByUserEmail(email, updateUser);
 
             return ResponseEntity.ok("User updated successfully!");
         } catch (Exception e) {

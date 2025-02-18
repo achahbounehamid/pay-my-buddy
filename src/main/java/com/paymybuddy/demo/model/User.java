@@ -1,6 +1,8 @@
 package com.paymybuddy.demo.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.paymybuddy.demo.validation.OnCreate;
+import com.paymybuddy.demo.validation.OnUpdate;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -18,17 +20,17 @@ public class User {
     private int id;
 
     @Column(nullable = false, unique = true)
-    @NotBlank(message = "Username cannot be blank")
+    @NotBlank(groups = {OnCreate.class, OnUpdate.class},message = "Username cannot be blank")
     @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
     private String username;
 
     @Column(nullable = false, unique = true)
-    @NotBlank(message = "Email cannot be blank")
-    @Email(message = "Email should be valid")
+    @NotBlank(groups = {OnCreate.class, OnUpdate.class},message = "Email cannot be blank")
+    @Email(groups = {OnCreate.class, OnUpdate.class},message = "Email should be valid")
     private String email;
 
     @Column(nullable = false)
-    @NotBlank(message = "Password cannot be blank")
+    @NotBlank(groups = OnCreate.class,message = "Password cannot be blank")
     @Size(min = 8, message = "Password must be at least 8 characters")
     private String password;
 
@@ -55,7 +57,6 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "connection_id")
     )
-//    private Set<User> connections = new HashSet<>();
     @JsonIgnore
     private Set<User> connections;
 
