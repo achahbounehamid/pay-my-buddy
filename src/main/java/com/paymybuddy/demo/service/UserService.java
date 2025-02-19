@@ -110,7 +110,7 @@ public class UserService implements UserDetailsService {
     //  Chargement d'un utilisateur pour Spring Security
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        logger.info("🔍 Chargement des détails de l'utilisateur pour l'email : " + username);
+        logger.info(" Chargement des détails de l'utilisateur pour l'email : " + username);
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable : " + username));
         logger.info(" Utilisateur trouvé : " + user.getEmail());

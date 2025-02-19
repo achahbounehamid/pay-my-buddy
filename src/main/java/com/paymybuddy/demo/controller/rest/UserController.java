@@ -1,5 +1,6 @@
 package com.paymybuddy.demo.controller.rest;
 
+import com.paymybuddy.demo.DTO.UserDTO;
 import com.paymybuddy.demo.model.User;
 import com.paymybuddy.demo.service.UserService;
 import com.paymybuddy.demo.validation.OnCreate;
@@ -13,7 +14,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.Collections;
 import java.util.List;
 
@@ -27,9 +27,14 @@ public class UserController {
     private UserService userService;
 
     //  Récupérer un utilisateur par son username
+//    @GetMapping("/username/{username}")
+//    public User getUserByUsername(@PathVariable String username) {
+//        return userService.findUserByUsername(username);
+//    }
     @GetMapping("/username/{username}")
-    public User getUserByUsername(@PathVariable String username) {
-        return userService.findUserByUsername(username);
+    public UserDTO getUserByUsername(@PathVariable String username) {
+        User user = userService.findUserByUsername(username);
+        return new UserDTO(user.getId(), user.getUsername(), user.getEmail());
     }
 
     // Inscription d'un nouvel utilisateur
