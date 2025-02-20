@@ -1,7 +1,6 @@
 package com.paymybuddy.demo.controllerTest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import com.paymybuddy.demo.DTO.UserDTO;
 import com.paymybuddy.demo.controller.rest.UserController;
 import com.paymybuddy.demo.filter.JWTFilter;
