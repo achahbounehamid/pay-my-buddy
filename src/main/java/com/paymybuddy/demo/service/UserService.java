@@ -11,11 +11,15 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
 
-
+/**
+ * Service class for managing user-related operations.
+ * This class implements UserDetailsService to integrate with Spring Security.
+ */
 @Service
 public class UserService implements UserDetailsService {
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
@@ -25,21 +29,43 @@ public class UserService implements UserDetailsService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-    //  Récupérer un utilisateur par username
+
+    /**
+     * Retrieves a user by their username.
+     *
+     * @param username The username of the user to retrieve.
+     * @return The User entity if found.
+     * @throws IllegalArgumentException if the user is not found.
+     */
     public User findUserByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User with username " + username + " not found"));
     }
-    //  Récupérer un utilisateur par email
+    /**
+     * Retrieves a user by their email address.
+     *
+     * @param email The email address of the user to retrieve.
+     * @return The User entity if found.
+     * @throws IllegalArgumentException if the user is not found.
+     */
     public User findUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User with email " + email + " not found"));
     }
-    // Récupérer tous les utilisateurs (pour ADMIN)
+    /**
+     * Retrieves all users (for admin use).
+     *
+     * @return A list of all User entities.
+     */
     public List<User> findAllUsers() {
         return userRepository.findAll();
     }
-    //  Inscription d'un utilisateur
+    /**
+     * Registers a new user.
+     *
+     * @param user The user object containing registration details.
+     * @throws IllegalArgumentException if the username is already in use.
+     */
     public void registerUser(User user) {
         logger.info("registerUser method called for: " + user.getUsername());
 
@@ -53,12 +79,24 @@ public class UserService implements UserDetailsService {
 
         logger.info("User registered: " + user.getUsername());
     }
-    //  Récupérer un utilisateur par ID
+    /**
+     * Retrieves a user by their ID.
+     *
+     * @param id The ID of the user to retrieve.
+     * @return The User entity if found.
+     * @throws IllegalArgumentException if the user is not found.
+     */
     public User findUserById(int id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + id));
     }
-    //  Mettre à jour un utilisateur par ID
+    /**
+     * Updates a user by their ID.
+     *
+     * @param id         The ID of the user to update.
+     * @param updatedUser The updated user details.
+     * @throws IllegalArgumentException if the user is not found.
+     */
     public void updateUser(int id, User updatedUser) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + id));
@@ -68,20 +106,31 @@ public class UserService implements UserDetailsService {
 
         userRepository.save(existingUser);
     }
-    //  Supprimer un utilisateur par ID
+    /**
+     * Deletes a user by their ID.
+     *
+     * @param id The ID of the user to delete.
+     * @throws IllegalArgumentException if the user is not found.
+     */
     public void deleteUser(int id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + id));
         userRepository.delete(user);
     }
-    //  Mettre à jour l'utilisateur connecté
-//    @Transactional
+    /**
+     * Updates the currently logged-in user by their email.
+     *
+     * @param email      The email of the user to update.
+     * @param updatedUser The updated user details.
+     * @throws IllegalArgumentException if the user is not found.
+     */
+    @Transactional
     public void updateUserByUserEmail(String email, User updatedUser) {
         User existingUser = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + email));
         logger.info("Mise à jour de l'utilisateur : " + email);
 
-// Mettre à jour les champs modifiables
+       // Update modifiable fields
         if (updatedUser.getEmail() != null) {
             existingUser.setEmail(updatedUser.getEmail());
         }
@@ -95,19 +144,30 @@ public class UserService implements UserDetailsService {
         if (updatedUser.getRoles() != null && !updatedUser.getRoles().isEmpty()) {
             existingUser.setRoles(updatedUser.getRoles());
         }
-//  Sauvegarder les modifications
+       // Save changes
         userRepository.save(existingUser);
         logger.info("User updated successfully: " + existingUser.getEmail());
     }
 
-    // Supprimer l'utilisateur connecté
+    /**
+     * Deletes the currently logged-in user by their username.
+     *
+     * @param username The username of the user to delete.
+     * @throws IllegalArgumentException if the user is not found.
+     */
     public void deleteUserByUsername(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
 
         userRepository.delete(user);
     }
-    //  Chargement d'un utilisateur pour Spring Security
+    /**
+     * Loads user details for Spring Security authentication.
+     *
+     * @param username The username of the user to load.
+     * @return UserDetails object for Spring Security.
+     * @throws UsernameNotFoundException if the user is not found.
+     */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         logger.info(" Chargement des détails de l'utilisateur pour l'email : " + username);

@@ -59,7 +59,7 @@ public class User {
     )
     @JsonIgnore
     private Set<User> connections;
-
+    // Getters and Setters
     public int getId() {
         return id;
     }

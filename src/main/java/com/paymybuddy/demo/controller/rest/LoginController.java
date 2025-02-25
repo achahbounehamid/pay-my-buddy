@@ -24,64 +24,80 @@ public class LoginController {
     private JWTService jwtService;
     private final AuthenticationManager authenticationManager;
     private final UserService userService;
-
+            /**
+            * Constructor to initialize services.
+            *
+            * @param jwtService           Service for handling JWT operations.
+            * @param authenticationManager Manager for handling authentication.
+            * @param userService          Service for user-related operations.
+            */
     public LoginController(JWTService jwtService, AuthenticationManager authenticationManager, UserService userService) {
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
         this.userService = userService;
     }
-
+    /**
+     * Endpoint to handle user login.
+     *
+     * @param loginRequest Request object containing user credentials.
+     * @return ResponseEntity with JWT token or error message.
+     */
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        logger.info("Tentative de connexion pour l'utilisateur: " + loginRequest.getEmail());
+        logger.info("Login attempt for user: " + loginRequest.getEmail());
 
-        // Vérifier si l'utilisateur existe avec son email
+        // Check if the user exists by email
         User user = userService.findUserByEmail(loginRequest.getEmail());
         if (user == null) {
-            logger.info(" Échec de connexion: Utilisateur non trouvé avec cet email.");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Identifiants incorrects");
+            logger.info(" Login failed: User not found with this email.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
         }
 
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            user.getEmail(), loginRequest.getPassword() //  Utiliser username
+                            user.getEmail(), loginRequest.getPassword()
                     )
             );
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            //  Générer le token JWT
+            //  Generate JWT token
             String token = jwtService.generateToken(authentication);
-            logger.info("Token généré pour l'utilisateur: " + loginRequest.getEmail());
+            logger.info("Token generated for user: " + loginRequest.getEmail());
 
             return ResponseEntity.ok(Collections.singletonMap("token", token));
         } catch (BadCredentialsException e) {
-            logger.warn(" Échec de connexion: Identifiants incorrects");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Identifiants incorrects");
+            logger.warn(" Login failed: Invalid credentials");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
         }
     }
-
+    /**
+     * Endpoint to retrieve user information based on JWT token.
+     *
+     * @param request HttpServletRequest object containing the JWT token.
+     * @return ResponseEntity with user information or error message.
+     */
     @GetMapping("/me/info")
     public ResponseEntity<?> getUserInfo(HttpServletRequest request) {
-        // Vérifier la présence du token JWT
+        //  Check for the presence of the JWT token
         String token = request.getHeader("Authorization");
         if (token == null || !token.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("error", "Token manquant ou invalide"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("error", "Invalid or expired token"));
         }
 
-        // Extraction du token sans "Bearer "
+        // Extract the username from the token
         token = token.substring(7);
 
-        // Vérifier la validité du token
+        // Validate the token
         if (!jwtService.validateToken(token)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("error", "Token invalide ou expiré"));
         }
 
-        // Extraire le username à partir du token
+        // Extract the username from the token
         String username = jwtService.extractUsername(token);
 
-        // Retourner le nom d'utilisateur
+        // Return the username
         return ResponseEntity.ok(Collections.singletonMap("username", username));
     }
 

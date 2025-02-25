@@ -23,7 +23,9 @@ class TransactionRepositoryTest {
 
     @Autowired
     private TestEntityManager entityManager;
-
+    /**
+     * Test that finding transactions by sender ID returns the correct transactions when they exist.
+     */
     @Test
     void findBySender_Id_ShouldReturnTransactions_WhenTransactionsExist() {
         // Arrange
@@ -38,7 +40,7 @@ class TransactionRepositoryTest {
         receiver.setPassword("password123");
         receiver.setUsername("receiverUser");
         entityManager.persist(receiver);
-
+        // Create and persist a transaction between the users
         Transaction transaction = new Transaction();
         transaction.setSender(sender);
         transaction.setReceiver(receiver);
@@ -47,17 +49,19 @@ class TransactionRepositoryTest {
         entityManager.persist(transaction);
         entityManager.flush();
 
-        // Act
+        // Act: Retrieve transactions by sender ID
         List<Transaction> transactions = transactionRepository.findBySender_Id(sender.getId());
 
-        // Assert
+        // Assert: Verify the results
         assertThat(transactions).hasSize(1);
         assertThat(transactions.get(0).getDescription()).isEqualTo("Test Transaction");
     }
-
+    /**
+     * Test that finding transactions by receiver ID returns the correct transactions when they exist.
+     */
     @Test
     void findByReceiver_Id_ShouldReturnTransactions_WhenTransactionsExist() {
-        // Arrange
+        // Arrange: Create and persist sender and receiver users
         User sender = new User();
         sender.setEmail("sender@example.com");
         sender.setPassword("password123");
@@ -69,7 +73,7 @@ class TransactionRepositoryTest {
         receiver.setPassword("password123");
         receiver.setUsername("receiverUser");
         entityManager.persist(receiver);
-
+// Create and persist a transaction between the users
         Transaction transaction = new Transaction();
         transaction.setSender(sender);
         transaction.setReceiver(receiver);
@@ -78,17 +82,19 @@ class TransactionRepositoryTest {
         entityManager.persist(transaction);
         entityManager.flush();
 
-        // Act
+        // Act: Retrieve transactions by receiver ID
         List<Transaction> transactions = transactionRepository.findByReceiver_Id(receiver.getId());
 
-        // Assert
+        // Assert: Verify the results
         assertThat(transactions).hasSize(1);
         assertThat(transactions.get(0).getAmount()).isEqualTo(new BigDecimal("150.00"));
     }
-
+    /**
+     * Test that finding transactions by sender ID and receiver ID returns the correct transactions when they exist.
+     */
     @Test
     void findBySender_IdAndReceiver_Id_ShouldReturnTransactions_WhenTransactionsExist() {
-        // Arrange
+        // Arrange: Create and persist sender and receiver users
         User sender = new User();
         sender.setEmail("sender@example.com");
         sender.setPassword("password123");
@@ -100,7 +106,7 @@ class TransactionRepositoryTest {
         receiver.setPassword("password123"); // AJOUTE ICI
         receiver.setUsername("receiverUser"); // AJOUTE ICI
         entityManager.persist(receiver);
-
+// Create and persist a transaction between the users
         Transaction transaction = new Transaction();
         transaction.setSender(sender);
         transaction.setReceiver(receiver);
@@ -109,10 +115,10 @@ class TransactionRepositoryTest {
         entityManager.persist(transaction);
         entityManager.flush();
 
-        // Act
+        // Act: Retrieve transactions by sender ID and receiver ID
         List<Transaction> transactions = transactionRepository.findBySender_IdAndReceiver_Id(sender.getId(), receiver.getId());
 
-        // Assert
+        // Assert: Verify the results
         assertThat(transactions).hasSize(1);
         assertThat(transactions.get(0).getDescription()).isEqualTo("Lunch Payment");
     }

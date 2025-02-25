@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "connections")
-@IdClass(ConnectionId.class) // Indique l'utilisation de la clé composite
+@IdClass(ConnectionId.class)
 public class Connections {
 
     @Id
@@ -23,6 +23,9 @@ public class Connections {
     @JoinColumn(name = "connection_id", insertable = false, updatable = false)
     private User friend;
 
+    /**
+     * Default constructor required by JPA.
+     */
     public int getUserId() {
         return userId;
     }

@@ -8,6 +8,7 @@ public class LoginViewController {
 
     @GetMapping("/login")
     public String showLoginPage() {
-        return "login"; // Renvoie la page login.html depuis src/main/resources/templates/
+
+        return "login";
     }
 }

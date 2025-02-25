@@ -23,21 +23,27 @@ import java.util.List;
 public class UserController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+
     @Autowired
     private UserService userService;
-
-    //  Récupérer un utilisateur par son username
-//    @GetMapping("/username/{username}")
-//    public User getUserByUsername(@PathVariable String username) {
-//        return userService.findUserByUsername(username);
-//    }
+    /**
+     * Endpoint to get a user by username.
+     *
+     * @param username The username of the user.
+     * @return UserDTO containing user details.
+     */
     @GetMapping("/username/{username}")
     public UserDTO getUserByUsername(@PathVariable String username) {
         User user = userService.findUserByUsername(username);
         return new UserDTO(user.getId(), user.getUsername(), user.getEmail());
     }
 
-    // Inscription d'un nouvel utilisateur
+    /**
+     * Endpoint to register a new user.
+     *
+     * @param user The user object containing registration details.
+     * @return ResponseEntity with success or error message.
+     */
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@Validated(OnCreate.class) @RequestBody User user) {
         logger.info("Register endpoint called with user: " + user.getEmail());
@@ -49,24 +55,37 @@ public class UserController {
             e.printStackTrace(); //  l'erreur complète
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
         }
-
-
     }
-    // Récupérer tous les utilisateurs (réservé aux ADMIN)
+    /**
+     * Endpoint to retrieve all users (admin only).
+     *
+     * @return ResponseEntity with a list of all users.
+     */
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<List<User>> getAllUsers(){
 
         return  ResponseEntity.ok(userService.findAllUsers());
     }
-    // Récupérer un utilisateur par ID (réservé aux ADMIN)
+    /**
+     * Endpoint to retrieve a user by ID (admin only).
+     *
+     * @param id The ID of the user.
+     * @return ResponseEntity with user details.
+     */
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/id/{id}")
     public  ResponseEntity<User> getUserById(@PathVariable int id){
         User user =userService.findUserById(id);
         return  ResponseEntity.ok(user);
     }
-    // Modifier un utilisateur par ID (réservé aux ADMIN)
+    /**
+     * Endpoint to update a user by ID (admin only).
+     *
+     * @param id         The ID of the user to update.
+     * @param updateUser The updated user details.
+     * @return ResponseEntity with success or error message.
+     */
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/id/{id}")
     public  ResponseEntity<String> updateUser(@PathVariable int id, @Validated(OnUpdate.class) @RequestBody User updateUser){
@@ -77,7 +96,12 @@ public class UserController {
             return  ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
         }
     }
-    // Supprimer un utilisateur par ID (réservé aux ADMIN)
+    /**
+     * Endpoint to delete a user by ID (admin only).
+     *
+     * @param id The ID of the user to delete.
+     * @return ResponseEntity with success or error message.
+     */
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/id/{id}")
     public  ResponseEntity<String> deleteUser(@PathVariable int id){
@@ -88,7 +112,12 @@ public class UserController {
             return  ResponseEntity.status((HttpStatus.BAD_REQUEST)).body("Error:" + e.getMessage());
         }
     }
-    // Récupérer les infos de l'utilisateur connecté
+    /**
+     * Endpoint to retrieve the current user's information.
+     *
+     * @param authentication The authentication object.
+     * @return ResponseEntity with user details or error message.
+     */
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(Authentication authentication) {
@@ -99,22 +128,33 @@ public class UserController {
         }
         return ResponseEntity.ok(user);
     }
-    //  Modifier son propre compte
+    /**
+     * Endpoint to update the current user's information.
+     *
+     * @param authentication The authentication object.
+     * @param updateUser     The updated user details.
+     * @return ResponseEntity with success or error message.
+     */
     @PreAuthorize("isAuthenticated()")
     @PutMapping("/me")
     public ResponseEntity<String> updateCurrentUser(Authentication authentication, @Validated(OnUpdate.class) @RequestBody User updateUser){
         String email = authentication.getName();
-        logger.info("Mise à jour des infos de l'utilisateur: {}", email);
+        logger.info("Updating user info for: {}", email);
         try {
             userService.updateUserByUserEmail(email, updateUser);
 
             return ResponseEntity.ok("User updated successfully!");
         } catch (Exception e) {
-            logger.error("Erreur lors de la mise à jour : {}", e.getMessage());
+            logger.error("Error updating user: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
         }
     }
-    // Supprimer son propre compte
+    /**
+     * Endpoint to delete the current user's account.
+     *
+     * @param authentication The authentication object.
+     * @return ResponseEntity with success or error message.
+     */
     @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/me")
     public ResponseEntity<String> deleteCurrentUser(Authentication authentication) {
@@ -126,5 +166,4 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
         }
     }
-
 }

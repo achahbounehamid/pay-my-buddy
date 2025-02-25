@@ -26,7 +26,12 @@ public class   JWTFilter extends OncePerRequestFilter {
     private static final Logger logger = LoggerFactory.getLogger(JWTFilter.class);
     private final JWTService jwtService;
     private final UserDetailsService userDetailsService;
-
+    /**
+     * Constructor to initialize services.
+     *
+     * @param jwtService         Service for handling JWT operations.
+     * @param userDetailsService Service for retrieving user-related data.
+     */
     public JWTFilter(JWTService jwtService, UserDetailsService userDetailsService) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
@@ -37,59 +42,59 @@ public class   JWTFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String requestPath = request.getServletPath();
-        logger.info(" Requête interceptée : " + requestPath);
+        logger.info(" Request intercepted: " + requestPath);
 
-        // Liste des endpoints et fichiers statiques qui ne nécessitent pas d'authentification
+        // List of public endpoints and static files that do not require authentication
         List<String> publicEndpoints = Arrays.asList(
                 "/api/users/login", "/api/users/register",
                 "/login", "/register", "/profile", "/addConnection", "/transfer",
                 "/favicon.ico", "/css/", "/js/", "/images/"
         );
 
-        // Vérifier si l'URL est publique (commence par un des préfixes définis)
+        // Check if the URL is public (starts with one of the defined prefixes)
         if (publicEndpoints.stream().anyMatch(requestPath::startsWith)) {
-            logger.info("Endpoint public, pas de vérification du token : " + requestPath);
+            logger.info("Public endpoint, no token verification needed: " + requestPath);
             filterChain.doFilter(request, response);
             return;
         }
 
-        //  Ajout explicite de `/api/users/me` comme endpoint sécurisé nécessitant un token
+        // Explicitly add `/api/users/me` as a secured endpoint requiring a token
         if (requestPath.startsWith("/api/users/me")) {
-            logger.info(" Endpoint sécurisé : " + requestPath);
+            logger.info(" Secured endpoint : " + requestPath);
         }
 
-        // Extraction du token JWT
+        // Extract the JWT token
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
-            logger.info("Token extrait : " + token);
+            logger.info("Token extracted : " + token);
 
             if (jwtService.validateToken(token)) {
                 String username = jwtService.extractUsername(token);
                 List<String> roles = jwtService.extractRoles(token);
-                logger.info(" Token valide pour l'utilisateur : " + username + " avec rôles : " + roles);
+                logger.info(" Valid token for user : " + username + " with roles : " + roles);
 
-                // Convertir les rôles en authorities
+                // Convert roles to authorities
                 Collection<GrantedAuthority> authorities = roles.stream()
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList());
 
-                // Charger l'utilisateur et peupler le SecurityContext
+                // Load the user and populate the SecurityContext
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authToken);
 
-                logger.info(" Authentification réussie pour l'utilisateur : " + username);
+                logger.info(" Authentication successful for user: " + username);
 
             } else {
-                logger.warn(" Token invalide ou expiré !");
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token invalide ou expiré !");
+                logger.warn(" Invalid or expired token!");
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token!");
                 return;
             }
         } else {
-            logger.warn(" Aucun token JWT fourni !");
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Aucun token fourni !");
+            logger.warn(" No JWT token provided!");
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "No token provided!");
             return;
         }
 

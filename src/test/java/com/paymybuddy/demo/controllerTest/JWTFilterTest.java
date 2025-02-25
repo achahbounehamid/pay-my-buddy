@@ -38,13 +38,19 @@ class JWTFilterTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
     }
-
+    /**
+     * Test that the filter allows access with a valid token.
+     *
+     * @throws Exception if the test fails
+     */
     @Test
     void shouldPassThrough_WhenPublicEndpoint() throws Exception {
+        // Simulate a request with a valid token
         when(request.getServletPath()).thenReturn("/api/users/login");
 
         jwtFilter.doFilterInternal(request, response, filterChain);
 
+       // Verify that the JWTService methods were called
         verify(filterChain, times(1)).doFilter(request, response);
         verify(response, never()).sendError(anyInt(), anyString());
     }

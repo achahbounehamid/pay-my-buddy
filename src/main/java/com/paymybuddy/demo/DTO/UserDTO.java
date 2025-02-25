@@ -5,7 +5,6 @@ public class UserDTO {
     private String username;
     private String email;
 
-    // Constructeurs
     public UserDTO() {}
 
     public UserDTO(int id, String username, String email) {
@@ -14,7 +13,7 @@ public class UserDTO {
         this.email = email;
     }
 
-    // Getters et setters
+
     public int getId() {
         return id;
     }

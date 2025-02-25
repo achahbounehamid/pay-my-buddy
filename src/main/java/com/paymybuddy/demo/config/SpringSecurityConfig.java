@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,12 +36,26 @@ public class SpringSecurityConfig {
     @Value("${jwt.secret-key}")
     private String jwtKey;
 
-    //  Déclare le filtre JWT comme Bean
+    /**
+     * Declares the JWT filter as a Bean.
+     *
+     * @param jwtService       Service for handling JWT operations.
+     * @param userDetailsService Service for retrieving user-related data.
+     * @return Configured JWTFilter instance.
+     */
     @Bean
+
     public JWTFilter jwtFilter(JWTService jwtService, UserDetailsService userDetailsService) {
         return new JWTFilter(jwtService, userDetailsService);
     }
-
+    /**
+     * Configures the security filter chain.
+     *
+     * @param http         HttpSecurity configuration.
+     * @param jwtFilter    JWT filter for authentication.
+     * @return Configured SecurityFilterChain.
+     * @throws Exception If an error occurs during configuration.
+     */
     @Bean
     public SecurityFilterChain filterChain(@NotNull HttpSecurity http, JWTFilter jwtFilter) throws Exception {
         return http
@@ -48,7 +63,6 @@ public class SpringSecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/users/**").permitAll()
-//                       .requestMatchers("/api/users/login", "/api/users/register").permitAll()
                         .requestMatchers("/login", "/register", "/profile", "/addConnection", "/transfer").permitAll()
                         .requestMatchers("/favicon.ico", "/css/**", "/js/**", "/images/**").permitAll()
                         .requestMatchers("/api/connections", "/api/transfers").authenticated()
@@ -69,30 +83,51 @@ public class SpringSecurityConfig {
                 .build();
     }
 
-    //  Configuration JWT Encoder et Decoder
+    /**
+     * Configures the JWT decoder.
+     *
+     * @return Configured JwtDecoder instance.
+     */
     @Bean
     public JwtDecoder jwtDecoder() {
         return NimbusJwtDecoder.withSecretKey(new SecretKeySpec(jwtKey.getBytes(), "HmacSHA256")).build();
     }
-
+    /**
+     * Configures the JWT encoder.
+     *
+     * @return Configured JwtEncoder instance.
+     */
     @Bean
     public JwtEncoder jwtEncoder() {
         return new NimbusJwtEncoder(new ImmutableSecret<>(jwtKey.getBytes()));
     }
-
-    //  Configuration du password encoder
+    /**
+     * Configures the password encoder using BCrypt.
+     *
+     * @return Configured BCryptPasswordEncoder instance.
+     */
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
-    //  Configuration de l'AuthenticationManager
+    /**
+     * Configures the AuthenticationManager.
+     *
+     * @param authenticationConfiguration Configuration for authentication.
+     * @return Configured AuthenticationManager instance.
+     * @throws Exception If an error occurs during configuration.
+     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
-
-    // Configuration du provider d'authentification
+    /**
+     * Configures the authentication provider.
+     *
+     * @param userDetailsService Service for retrieving user-related data.
+     * @param passwordEncoder    Encoder for passwords.
+     * @return Configured DaoAuthenticationProvider instance.
+     */
     @Bean
     public DaoAuthenticationProvider authenticationProvider(UserDetailsService userDetailsService, BCryptPasswordEncoder passwordEncoder) {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();

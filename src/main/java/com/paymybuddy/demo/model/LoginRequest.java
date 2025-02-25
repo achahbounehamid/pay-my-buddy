@@ -5,16 +5,17 @@ public class LoginRequest {
 
 private String email;
     private String password;
-
-    // Constructeurs
+    /**
+     * Default constructor required for frameworks like Jackson.
+     */
     public LoginRequest() {}
 
     public LoginRequest(String email, String password) {
         this.email = email;
         this.password = password;
     }
+    /*** Getter and  Setter*/
 
-    // Getters et Setters
     public String getEmail() {
         return email;
     }

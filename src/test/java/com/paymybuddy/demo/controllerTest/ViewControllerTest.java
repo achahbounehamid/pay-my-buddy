@@ -22,6 +22,11 @@ class ViewControllersTest {
     @MockBean
     private JWTFilter jwtFilter;
 
+    /**
+     * Test that the add connection page is displayed correctly.
+     *
+     * @throws Exception if the test fails
+     */
     @Test
     void showAddConnectionPage_ShouldReturnAddConnectionView() throws Exception {
         mockMvc.perform(get("/addConnection"))
@@ -29,27 +34,44 @@ class ViewControllersTest {
                 .andExpect(view().name("addConnection"));
     }
 
+    /**
+     * Test that the login page is displayed correctly.
+     *
+     * @throws Exception if the test fails
+     */
     @Test
     void showLoginPage_ShouldReturnLoginView() throws Exception {
         mockMvc.perform(get("/login"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("login"));
     }
-
+    /**
+     * Test that the login page is displayed correctly.
+     *
+     * @throws Exception if the test fails
+     */
     @Test
     void showProfilePage_ShouldReturnProfileView() throws Exception {
         mockMvc.perform(get("/profile"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("profile"));
     }
-
+    /**
+     * Test that the profile page is displayed correctly.
+     *
+     * @throws Exception if the test fails
+     */
     @Test
     void showRegisterPage_ShouldReturnRegisterView() throws Exception {
         mockMvc.perform(get("/register"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("register"));
     }
-
+    /**
+     * Test that the transfer page is displayed correctly.
+     *
+     * @throws Exception if the test fails
+     */
     @Test
     void showTransferPage_ShouldReturnTransferView() throws Exception {
         mockMvc.perform(get("/transfer"))

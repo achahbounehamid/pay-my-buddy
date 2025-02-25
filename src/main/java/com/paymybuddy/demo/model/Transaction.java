@@ -34,7 +34,7 @@ public class Transaction {
     @CreationTimestamp
     private LocalDateTime transactionDate;
 
-    // Getters et Setters
+    // Getters and Setters
     public int getId() {
         return id;
     }

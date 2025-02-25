@@ -1,4 +1,3 @@
-
 package com.paymybuddy.demo.serviceTest;
 
 import com.paymybuddy.demo.model.Connections;
@@ -6,17 +5,19 @@ import com.paymybuddy.demo.model.User;
 import com.paymybuddy.demo.repository.ConnectionsRepository;
 import com.paymybuddy.demo.repository.UserRepository;
 import com.paymybuddy.demo.service.ConnectionService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
-import org.mockito.MockitoAnnotations;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class ConnectionServiceTest {
 
     @Mock
@@ -27,11 +28,6 @@ class ConnectionServiceTest {
 
     @InjectMocks
     private ConnectionService connectionService;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @Test
     void addFriend_ShouldAddFriendSuccessfully() {
@@ -131,5 +127,56 @@ class ConnectionServiceTest {
         );
 
         assertEquals("Friend not found: friend@example.com", exception.getMessage());
+    }
+
+    @Test
+    void addFriend_ShouldThrowException_WhenFriendAlreadyAdded() {
+        User user = new User();
+        user.setId(1);
+        user.setEmail("user@example.com");
+
+        User friend = new User();
+        friend.setId(2);
+        friend.setEmail("friend@example.com");
+
+        Connections existingConnection = new Connections();
+        existingConnection.setUser(user);
+        existingConnection.setFriend(friend);
+
+        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmail("friend@example.com")).thenReturn(Optional.of(friend));
+        when(connectionRepository.findByUserAndFriend(user, friend)).thenReturn(Optional.of(existingConnection));
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () ->
+                connectionService.addFriend("user@example.com", "friend@example.com")
+        );
+
+        assertEquals("Already connected with this friend.", exception.getMessage()); // Mettre à jour le message attendu
+    }
+
+    @Test
+    void addFriend_ShouldSaveConnectionsCorrectly() {
+        User user = new User();
+        user.setId(1);
+        user.setEmail("user@example.com");
+
+        User friend = new User();
+        friend.setId(2);
+        friend.setEmail("friend@example.com");
+
+        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmail("friend@example.com")).thenReturn(Optional.of(friend));
+        when(connectionRepository.findByUserAndFriend(user, friend)).thenReturn(Optional.empty());
+
+        connectionService.addFriend("user@example.com", "friend@example.com");
+
+        ArgumentCaptor<Connections> connectionsCaptor = ArgumentCaptor.forClass(Connections.class);
+        verify(connectionRepository, times(2)).save(connectionsCaptor.capture());
+
+        List<Connections> savedConnections = connectionsCaptor.getAllValues();
+        assertEquals(user, savedConnections.get(0).getUser());
+        assertEquals(friend, savedConnections.get(0).getFriend());
+        assertEquals(friend, savedConnections.get(1).getUser());
+        assertEquals(user, savedConnections.get(1).getFriend());
     }
 }
