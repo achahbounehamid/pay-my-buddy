@@ -50,7 +50,7 @@ class JWTFilterTest {
 
         jwtFilter.doFilterInternal(request, response, filterChain);
 
-       // Verify that the JWTService methods were called
+        // Verify that the JWTService methods were called
         verify(filterChain, times(1)).doFilter(request, response);
         verify(response, never()).sendError(anyInt(), anyString());
     }
