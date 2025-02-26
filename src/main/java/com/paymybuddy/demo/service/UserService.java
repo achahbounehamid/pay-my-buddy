@@ -12,7 +12,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 
@@ -66,10 +66,11 @@ public class UserService implements UserDetailsService {
      * @param user The user object containing registration details.
      * @throws IllegalArgumentException if the username is already in use.
      */
+    @Transactional
     public void registerUser(User user) {
-        logger.info("registerUser method called for: " + user.getUsername());
-
+        logger.error("Username already in use: " + user.getUsername());
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+
             throw new IllegalArgumentException("Username already in use!");
         }
 
@@ -77,7 +78,7 @@ public class UserService implements UserDetailsService {
         user.setPassword(hashedPassword);
         userRepository.save(user);
 
-        logger.info("User registered: " + user.getUsername());
+        logger.info("User saved in database.");
     }
     /**
      * Retrieves a user by their ID.
@@ -128,26 +129,52 @@ public class UserService implements UserDetailsService {
     public void updateUserByUserEmail(String email, User updatedUser) {
         User existingUser = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + email));
-        logger.info("Mise à jour de l'utilisateur : " + email);
 
-       // Update modifiable fields
-        if (updatedUser.getEmail() != null) {
+
+        boolean updated = false;
+
+        if (updatedUser.getUsername() != null && !updatedUser.getUsername().isBlank()) {
+            logger.info("Updating username to: {}", updatedUser.getUsername());
+            existingUser.setUsername(updatedUser.getUsername());
+            updated = true;
+        }
+
+        if (updatedUser.getEmail() != null && !updatedUser.getEmail().isBlank()) {
+            logger.info("Updating email to: {}", updatedUser.getEmail());
             existingUser.setEmail(updatedUser.getEmail());
+            updated = true;
         }
-        if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
+
+        if (updatedUser.getPassword() != null && !updatedUser.getPassword().isBlank()) {
+            logger.info(" Updating password.");
             existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword().trim()));
+            updated = true;
         }
+
         if (updatedUser.getBalance() != null) {
-            logger.info("Mise à jour de la balance: " + updatedUser.getBalance());
+            if (updatedUser.getBalance().compareTo(BigDecimal.ZERO) < 0) {
+                throw new IllegalArgumentException("Balance cannot be negative.");
+            }
+            logger.info("Updating balance to: {}", updatedUser.getBalance());
             existingUser.setBalance(updatedUser.getBalance());
+            updated = true;
         }
+
         if (updatedUser.getRoles() != null && !updatedUser.getRoles().isEmpty()) {
+            logger.info(" Updating roles.");
             existingUser.setRoles(updatedUser.getRoles());
+            updated = true;
         }
-       // Save changes
-        userRepository.save(existingUser);
-        logger.info("User updated successfully: " + existingUser.getEmail());
+
+        if (updated) {
+            logger.info(" Saving user modifications: {}", existingUser);
+            userRepository.save(existingUser);
+            logger.info("User updated successfully!");
+        } else {
+            logger.warn("⚠No changes detected, update ignored.");
+        }
     }
+
 
     /**
      * Deletes the currently logged-in user by their username.

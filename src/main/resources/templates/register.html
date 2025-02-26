@@ -61,6 +61,7 @@
             window.location.href = "/login"; // Rediriger vers la page de connexion
         })
         .catch(error => {
+
             document.getElementById("error-message").textContent = error.message;
             document.getElementById("error-message").classList.remove("d-none");
         });

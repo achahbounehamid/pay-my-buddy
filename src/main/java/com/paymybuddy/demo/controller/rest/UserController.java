@@ -52,7 +52,7 @@ public class UserController {
             logger.info("User registered successfully: " + user.getEmail());
             return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully!");
         } catch (Exception e) {
-            e.printStackTrace(); //  l'erreur complète
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
         }
     }
@@ -139,13 +139,15 @@ public class UserController {
     @PutMapping("/me")
     public ResponseEntity<String> updateCurrentUser(Authentication authentication, @Validated(OnUpdate.class) @RequestBody User updateUser){
         String email = authentication.getName();
-        logger.info("Updating user info for: {}", email);
+//        logger.info("Updating user info for: {}", email);
+        logger.info(" Tentative de mise à jour pour l'utilisateur: {}", email);
+        logger.info(" Données reçues : {}", updateUser);
         try {
             userService.updateUserByUserEmail(email, updateUser);
-
             return ResponseEntity.ok("User updated successfully!");
         } catch (Exception e) {
-            logger.error("Error updating user: {}", e.getMessage());
+//            logger.error("Error updating user: {}", e);
+            logger.error(" Erreur lors de la mise à jour : ", e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
         }
     }
