@@ -130,50 +130,49 @@ public class UserService implements UserDetailsService {
         User existingUser = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + email));
 
+        logger.info(" Données reçues pour mise à jour : {}", updatedUser);
 
         boolean updated = false;
 
         if (updatedUser.getUsername() != null && !updatedUser.getUsername().isBlank()) {
-            logger.info("Updating username to: {}", updatedUser.getUsername());
+            logger.info(" Modification du username en : {}", updatedUser.getUsername());
             existingUser.setUsername(updatedUser.getUsername());
             updated = true;
         }
 
         if (updatedUser.getEmail() != null && !updatedUser.getEmail().isBlank()) {
-            logger.info("Updating email to: {}", updatedUser.getEmail());
+            logger.info(" Modification de l'email en : {}", updatedUser.getEmail());
             existingUser.setEmail(updatedUser.getEmail());
             updated = true;
         }
 
         if (updatedUser.getPassword() != null && !updatedUser.getPassword().isBlank()) {
-            logger.info(" Updating password.");
+            logger.info(" Mise à jour du mot de passe.");
             existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword().trim()));
             updated = true;
         }
 
         if (updatedUser.getBalance() != null) {
-            if (updatedUser.getBalance().compareTo(BigDecimal.ZERO) < 0) {
-                throw new IllegalArgumentException("Balance cannot be negative.");
-            }
-            logger.info("Updating balance to: {}", updatedUser.getBalance());
+            logger.info(" Mise à jour de la balance: {}", updatedUser.getBalance());
             existingUser.setBalance(updatedUser.getBalance());
             updated = true;
         }
 
         if (updatedUser.getRoles() != null && !updatedUser.getRoles().isEmpty()) {
-            logger.info(" Updating roles.");
+            logger.info(" Mise à jour des rôles.");
             existingUser.setRoles(updatedUser.getRoles());
             updated = true;
         }
 
         if (updated) {
-            logger.info(" Saving user modifications: {}", existingUser);
+            logger.info(" Enregistrement des modifications : {}", existingUser);
             userRepository.save(existingUser);
-            logger.info("User updated successfully!");
+            logger.info("Utilisateur mis à jour avec succès !");
         } else {
-            logger.warn("⚠No changes detected, update ignored.");
+            logger.warn("⚠ Aucune modification détectée, mise à jour ignorée.");
         }
     }
+
 
 
     /**
